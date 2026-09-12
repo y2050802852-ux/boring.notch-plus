@@ -270,6 +270,12 @@ git：`feature/pomodoro` 已合回 `main` 并打 **v1** 标签（用户实测通
 - **设置**：Pomodoro 页的 Alerts 区换成 SoundPicker；新增「Hourly Chime」页（开关 + SoundPicker，禁用态置灰）。
 - 坑：pbxproj 里新文件的 fileRef 必须挂到与实际目录对应的 group（SoundPicker.swift 在 components/Settings/ 下，要挂 Settings 组，挂 components 组会解析成 components/SoundPicker.swift 导致 "Build input file cannot be found"）。
 
+### 12.4 拖拽修复 + 暂存区清空（v3）与报时锁屏静音（v4）（2026-09-12）
+
+- **拖拽入库修复（v3，关键发现）**：沙盒应用在 macOS 26 上**无法观察系统拖拽粘贴板**（`NSPasteboard(name: .drag)` 的 changeCount 冻结），`DragDetector` 的 NSEvent 全局监视器虽能收到鼠标事件但整个内容识别链路失效（这大概就是官方版该功能默认被用户关掉的原因）。修复：改走 SwiftUI 自己的拖拽会话——`GeneralDropTargetDelegate`（ContentView）在 `dropEntered`（收起态且 expandedDragDetection 开启）自动展开刘海切 Shelf，`dropUpdated` 提议 .copy，`performDrop` 在收起态或 Shelf Tab 时把 providers 灌入 `ShelfStateViewModel.load`（Home Tab 保持原取消行为）。诊断手段：NSLog 会被统一日志脱敏、/tmp 被沙盒拦截，最终用容器内 `NSTemporaryDirectory()` 文件日志定位。
+- **暂存区清空（v3）**：`ShelfStateViewModel.clearAll()` 逐条走 `cleanupStoredData()`（只清书签引用 + isTemporary 临时缓存，真实文件零风险）；面板右上角垃圾桶按钮仅有文件时显示、直接清空无确认（用户拍板）。文件拖入本质是书签引用而非复制（已向用户讲解）。
+- **报时锁屏静音（v4）**：`HourlyChimeManager` 监听 `com.apple.screenIsLocked/Unlocked` 分布式通知，触发时若锁屏则跳过本次（不补报，下个整点恢复）；睡眠由既有 60 秒宽限守卫覆盖（唤醒后 overdue 静默跳过）。
+
 ### 12.3 番茄钟功能（feature/pomodoro 分支）
 
 设计共识（用户逐项确认）：标准番茄循环（专注→短休，每 4 轮长休，全自动衔接、可暂停/跳过/停止）；刘海新增第三个 Tab 作为控制面板；收起态倒计时**优先于**音乐 Live Activity；阶段结束自动展开刘海（复用 hover 展开动画）显示专属提醒页 + 系统提示音（可关）；全屏时延迟弹出（零新增权限）；独立 Pomodoro 设置页（三时长 + 声音开关）。
