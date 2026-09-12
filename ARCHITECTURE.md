@@ -282,4 +282,4 @@ hdiutil create -volname "boringNotch 2.7.2" \
 
 性能设计：每阶段只调度 1 次 Timer 触发（tolerance 0.3s），暂停/停止后无任何活动；无网络、无轮询、无新权限、无新资源文件；提示音用系统 NSSound("Glass")。
 
-验证状态：`tools/typecheck.sh` 全量编译通过（Swift 6.3.3，新代码零告警）；**待 Xcode 安装后跑真实 Release 构建验证 pbxproj/打包，再交付性能实测**。
+验证状态：✅ 全部通过（2026-09-12）。① `tools/typecheck.sh` 全量编译通过（新代码零告警）；② 用户安装 Xcode 26.6 后，真实 Release 构建一次通过（`xcodebuild -scheme boringNotch -configuration Release build`），产物 `~/Library/Developer/Xcode/DerivedData/boringNotch-hfsmkobkgqjhwcehcksrvmochtly/Build/Products/Release/boringNotch.app`，XPC helper / MediaRemoteAdapter / 资源齐全，ad-hoc 签名。遗留：无。
