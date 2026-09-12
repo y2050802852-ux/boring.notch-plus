@@ -216,23 +216,18 @@ tools/typecheck.sh   # 用 SwiftPM 把全部源码真实编译一遍（约 5 秒
 ```bash
 cd /Users/imac/codes/Source_codes/boring.notch-2.7.3
 
-# 1. 解析 SPM 依赖（需联网，约 11 个包）
-xcodebuild -resolvePackageDependencies -project boringNotch.xcodeproj
+# 推荐：用本地构建脚本（已内置 ad-hoc + hardened runtime 的修复，见下）
+tools/build.sh          # 产物路径会打印在最后
+open <产物>/boringNotch.app
 
-# 2. Release 构建 —— 仓库默认 ad-hoc 签名，无需开发者账号
-xcodebuild -project boringNotch.xcodeproj \
-  -scheme boringNotch \
-  -configuration Release \
-  -destination "generic/platform=macOS" \
-  build
-# 产物在 DerivedData 下 Build/Products/Release/boringNotch.app
-# (scheme 未入库，xcodebuild 会自动生成；不行就先 open 工程一次)
-
-# 3. 打 DMG（官方 CI 同款命令）
-hdiutil create -volname "boringNotch 2.7.2" \
-  -srcfolder <构建产物路径>/boringNotch.app \
-  -ov -format UDZO boringNotch.dmg
+# 原始命令（等价，含修复参数）
+xcodebuild -project boringNotch.xcodeproj -scheme boringNotch \
+  -configuration Release -destination "generic/platform=macOS" \
+  ENABLE_HARDENED_RUNTIME=NO build
+hdiutil create -volname "boringNotch" -srcfolder <产物>/boringNotch.app -ov -format UDZO boringNotch.dmg
 ```
+
+**⚠️ 实测踩坑（2026-09-12）：ad-hoc 本地构建 + hardened runtime = 启动即崩。** 工程默认 `ENABLE_HARDENED_RUNTIME=YES`，ad-hoc 签名无 Team ID，dyld 的库验证会把 App 和被重签名的 ad-hoc 内嵌 `MediaRemoteAdapter.framework` 判为"不同 Team"而在启动瞬间 SIGABRT（崩溃日志在 `~/Library/Logs/DiagnosticReports/`）。官方 CI 用真证书（重签后 Team ID 一致）不受影响。本地解法：构建时传 `ENABLE_HARDENED_RUNTIME=NO`（`tools/build.sh` 已内置）；若日后用真证书分发可去掉该参数。XPC helper 同样 ad-hoc 嵌入但由 launchd 独立拉起，不受此影响。
 
 要点：
 - **无需任何手动脚本**：XPC helper 自动嵌入、framework 自动重签（CodeSignOnCopy）
