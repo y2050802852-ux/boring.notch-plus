@@ -203,6 +203,16 @@ Info.plist：`SUFeedURL = https://TheBoredTeam.github.io/boring.notch/appcast.xm
 
 ## 10. 本地重编译 → DMG（承接上次会话的目标）
 
+**⚠️ 前提（2026-09-12 核实）：本机未安装完整版 Xcode**（只有 Command Line Tools，`xcodebuild` 是报错的壳；上次会话"swift/xcodebuild 可用"的结论仅对 swift 成立）。要产出 .app/DMG 必须先从 App Store 安装完整版 Xcode 并 `sudo xcode-select -s /Applications/Xcode.app`。
+
+**无 Xcode 时的类型检查替代方案**（已搭建，见根目录 `Package.swift` + `tools/typecheck.sh`）：
+
+```bash
+tools/typecheck.sh   # 用 SwiftPM 把全部源码真实编译一遍（约 5 秒增量）
+```
+
+原理：把源码镜像到 `tools/harness/boringNotch/`（剥掉 `#Preview` 宏块——其插件仅 Xcode 有；注入 Assets.xcassets 生成符号的桩），以 Swift 5 语言模式编译。KeyboardShortcuts 用 `tools/vendor/` 里的本地化副本。**应用源码目录不会被修改**。注意它抓不出 pbxproj 配置类错误（新文件注册、签名、资源打包），那些仍需 Xcode 验证。
+
 ```bash
 cd /Users/imac/codes/Source_codes/boring.notch-2.7.3
 
@@ -245,3 +255,31 @@ hdiutil create -volname "boringNotch 2.7.2" \
 8. **死代码**（可无视或清理）：`BoringNotchWindow.swift`（旧窗口类）、`BoringExtrasMenu.swift`、`menu/StatusBarMenu.swift`、`TestView.swift`、`WhatsNewView.swift`、`Tips/TipStore.swift`、注释掉的 Downloads/Extensions 设置页、Pow 包引用。
 9. **硬编码值**：YT Music 端口 26538、音量/亮度步长 1/16、sneak peek 时长 1.5s/3s、刘海宽度 +4 魔法数。
 10. **版本号**：工程实际 2.7.2(262)，改版号直接改 pbxproj 的 MARKETING_VERSION / CURRENT_PROJECT_VERSION。
+
+---
+
+## 12. 二次开发记录
+
+### 12.1 Git 布局（2026-09-12 初始化）
+
+- `main` 分支：`2a07b59` 纯净源码基线（回滚点）+ `ced1353` 架构文档
+- 功能分支：`feature/pomodoro`（`9dedf2d` 类型检查 harness → `c3dd9f4` 番茄钟功能）
+- 出问题回滚：`git checkout main -- <文件>` 或 `git reset --hard 2a07b59`（放弃全部改动）
+
+### 12.2 番茄钟功能（feature/pomodoro 分支）
+
+设计共识（用户逐项确认）：标准番茄循环（专注→短休，每 4 轮长休，全自动衔接、可暂停/跳过/停止）；刘海新增第三个 Tab 作为控制面板；收起态倒计时**优先于**音乐 Live Activity；阶段结束自动展开刘海（复用 hover 展开动画）显示专属提醒页 + 系统提示音（可关）；全屏时延迟弹出（零新增权限）；独立 Pomodoro 设置页（三时长 + 声音开关）。
+
+实现地图：
+- `managers/PomodoroManager.swift`（新）— 核心状态机。**墙钟驱动**（`endAt: Date` + 单个一次性 Timer），睡醒后时间自动正确；非运行状态零定时器；倒计时文本由视图 `TimelineView(.periodic(1s))` 轮询 `remaining` 计算属性，manager 本身不按秒 publish。全屏延迟弹出：`markReminderDeferred()` + 监听 `FullscreenMediaDetector.$fullscreenStatus` 重试（120s 窗口）
+- `components/PomodoroPanelView.swift`（新）— `PomodoroPanelView`（Tab 面板：大倒计时/轮次圆点/控制按钮）+ `PomodoroLiveActivity`（收起态 🍅 mm:ss）
+- `ContentView.swift` — 收起态优先级链插入点（电池 > HUD > **番茄钟** > 音乐 > 笑脸）+ `computedChinWidth` 对应分支 + 展开态 switch 新增 `.pomodoro` 分支
+- `enums/generic.swift` — `NotchViews` 新增 `.pomodoro`；`components/Tabs/TabSelectionView.swift` — tabs 数组新增 Timer 图标项
+- `boringNotchApp.swift` — `openNotchForPomodoroReminder()`：按选中屏幕找 viewModel → `open()` + 切到番茄钟 Tab；全屏隐藏时改走 `markReminderDeferred()`
+- `models/Constants.swift` — 4 个 Defaults keys（pomodoroFocusDuration/ShortBreak/LongBreak/SoundEnabled）
+- `components/Settings/SettingsView.swift` — 侧栏 "Pomodoro" 项 + `PomodoroSettings` 页（Stepper 三时长 + 声音开关；时长改动下一阶段生效）
+- `boringNotch.xcodeproj/project.pbxproj` — 手工注册两个新文件（UUID `AA00B0BA5E55F1000000000x`；工程只有 private/ 和 XPC helper 是文件系统同步组，**新增文件必须手动注册**）
+
+性能设计：每阶段只调度 1 次 Timer 触发（tolerance 0.3s），暂停/停止后无任何活动；无网络、无轮询、无新权限、无新资源文件；提示音用系统 NSSound("Glass")。
+
+验证状态：`tools/typecheck.sh` 全量编译通过（Swift 6.3.3，新代码零告警）；**待 Xcode 安装后跑真实 Release 构建验证 pbxproj/打包，再交付性能实测**。
