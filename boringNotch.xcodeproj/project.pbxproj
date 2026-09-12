@@ -81,6 +81,8 @@
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		AA00B0BA5E55F10000000002 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F10000000001 /* PomodoroManager.swift */; };
 		AA00B0BA5E55F10000000004 /* PomodoroPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F10000000003 /* PomodoroPanelView.swift */; };
+		AA00B0BA5E55F20000000002 /* SoundPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000001 /* SoundPicker.swift */; };
+		AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */; };
 		1471A8592C6281BD0058408D /* BoringNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* BoringNotchWindow.swift */; };
 		149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B962C737D00006418B1 /* WebcamManager.swift */; };
 		149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B992C737D40006418B1 /* WebcamView.swift */; };
@@ -251,6 +253,8 @@
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F10000000001 /* PomodoroManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F10000000003 /* PomodoroPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroPanelView.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000001 /* SoundPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundPicker.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourlyChimeManager.swift; sourceTree = "<group>"; };
 		1471A8582C6281BD0058408D /* BoringNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoringNotchWindow.swift; sourceTree = "<group>"; };
 		149E0B962C737D00006418B1 /* WebcamManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamManager.swift; sourceTree = "<group>"; };
 		149E0B992C737D40006418B1 /* WebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamView.swift; sourceTree = "<group>"; };
@@ -520,6 +524,7 @@
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				AA00B0BA5E55F10000000001 /* PomodoroManager.swift */,
+				AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
 				B1F0A0012E60000100000001 /* BrightnessManager.swift */,
@@ -733,6 +738,7 @@
 			isa = PBXGroup;
 			children = (
 				11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */,
+				AA00B0BA5E55F20000000001 /* SoundPicker.swift */,
 				11C5E3152DFE88510065821E /* SettingsView.swift */,
 				11C5E3112DFE85970065821E /* SettingsWindowController.swift */,
 				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
@@ -968,6 +974,8 @@
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
 				AA00B0BA5E55F10000000002 /* PomodoroManager.swift in Sources */,
 				AA00B0BA5E55F10000000004 /* PomodoroPanelView.swift in Sources */,
+				AA00B0BA5E55F20000000002 /* SoundPicker.swift in Sources */,
+				AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,
 				118EBE312E9717DB00D54B5A /* URL+SecurityScoped.swift in Sources */,

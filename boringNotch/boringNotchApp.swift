@@ -261,6 +261,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Hourly chime: the sound already played in the manager; the small
+    /// banner below the notch is only shown while the notch is closed and
+    /// visible (hidden in fullscreen / open states get sound only).
+    @MainActor
+    func showHourlyChimeVisual(_ message: String) {
+        var viewModel = vm
+        if Defaults[.showOnAllDisplays], let screenViewModel = viewModels[coordinator.selectedScreenUUID] {
+            viewModel = screenViewModel
+        }
+        guard viewModel.notchState == .closed, !viewModel.hideOnClosed else { return }
+        coordinator.showHourlyChime(message)
+    }
+
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
         let rect = NSRect(x: 0, y: 0, width: windowSize.width, height: windowSize.height)
         let styleMask: NSWindow.StyleMask = [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow]
@@ -447,6 +460,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.openNotchForPomodoroReminder()
             }
         }
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.hourlyChimeTriggered, object: nil, queue: nil
+        ) { [weak self] note in
+            Task { @MainActor in
+                guard let message = note.userInfo?["message"] as? String else { return }
+                self?.showHourlyChimeVisual(message)
+            }
+        }
+
+        // Start the hourly chime scheduler when the feature is enabled.
+        _ = HourlyChimeManager.shared
 
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm

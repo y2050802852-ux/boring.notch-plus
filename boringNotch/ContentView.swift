@@ -353,6 +353,19 @@ struct ContentView: View {
                               }
                           }
                       }
+
+                      if let chimeMessage = coordinator.hourlyChimeMessage, vm.notchState == .closed, !vm.hideOnClosed {
+                          HStack(spacing: 6) {
+                              Image(systemName: "bell.fill")
+                              Text(chimeMessage)
+                                  .lineLimit(1)
+                          }
+                          .font(.system(size: 12, weight: .medium))
+                          .foregroundStyle(.gray)
+                          .padding(.bottom, 10)
+                          .transition(.opacity)
+                          .animation(.smooth, value: coordinator.hourlyChimeMessage)
+                      }
                   }
               }
               .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) { view in

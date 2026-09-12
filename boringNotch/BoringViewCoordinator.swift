@@ -311,6 +311,26 @@ class BoringViewCoordinator: ObservableObject {
             }
         }
     }
+
+    /// Text of the hourly chime banner shown below the notch; nil hides it.
+    @Published var hourlyChimeMessage: String?
+    private var hourlyChimeTask: Task<Void, Never>?
+
+    /// Shows the hourly chime banner for 3 seconds, mimicking the
+    /// song-change sneak peek (notch width unchanged, strip grows below).
+    func showHourlyChime(_ message: String) {
+        hourlyChimeTask?.cancel()
+        withAnimation(.smooth) {
+            hourlyChimeMessage = message
+        }
+        hourlyChimeTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard let self, !Task.isCancelled else { return }
+            withAnimation(.smooth) {
+                self.hourlyChimeMessage = nil
+            }
+        }
+    }
     
     func showEmpty() {
         currentView = .home

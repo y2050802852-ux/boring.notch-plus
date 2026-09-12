@@ -242,9 +242,7 @@ final class PomodoroManager: ObservableObject {
         case .longBreak:
             reminderMessage = Self.longBreakStartMessages.randomElement()
         }
-        if Defaults[.pomodoroSoundEnabled] {
-            NSSound(named: "Glass")?.play()
-        }
+        SystemSound.play(Defaults[.pomodoroSoundName])
         NotificationCenter.default.post(name: .pomodoroPhaseEnded, object: nil)
     }
 

@@ -48,6 +48,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Pomodoro") {
                     Label("Pomodoro", systemImage: "timer")
                 }
+                NavigationLink(value: "Hourly Chime") {
+                    Label("Hourly Chime", systemImage: "bell.fill")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -88,6 +91,8 @@ struct SettingsView: View {
                     Charge()
                 case "Pomodoro":
                     PomodoroSettings()
+                case "Hourly Chime":
+                    HourlyChimeSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -391,6 +396,7 @@ struct PomodoroSettings: View {
     @Default(.pomodoroFocusDuration) var focusDuration
     @Default(.pomodoroShortBreakDuration) var shortBreakDuration
     @Default(.pomodoroLongBreakDuration) var longBreakDuration
+    @Default(.pomodoroSoundName) var pomodoroSoundName
 
     var body: some View {
         Form {
@@ -413,11 +419,9 @@ struct PomodoroSettings: View {
                 Text("A long break follows every 4 focus sessions. Changes apply to the next phase.")
             }
             Section {
-                Defaults.Toggle(key: .pomodoroSoundEnabled) {
-                    Text("Play a sound when a phase ends")
-                }
+                SoundPicker(selection: $pomodoroSoundName)
             } header: {
-                Text("Alerts")
+                Text("Phase-end sound")
             }
         }
         .accentColor(.effectiveAccent)
@@ -434,6 +438,33 @@ struct PomodoroSettings: View {
                     .monospacedDigit()
             }
         }
+    }
+}
+
+struct HourlyChimeSettings: View {
+    @Default(.hourlyChimeEnabled) var hourlyChimeEnabled
+    @Default(.hourlyChimeSoundName) var hourlyChimeSoundName
+
+    var body: some View {
+        Form {
+            Section {
+                Defaults.Toggle(key: .hourlyChimeEnabled) {
+                    Text("Chime at the top of every hour")
+                }
+            } header: {
+                Text("General")
+            } footer: {
+                Text("A playful time announcement pops up below the notch for a few seconds. While the notch is hidden or expanded, only the sound plays.")
+            }
+            Section {
+                SoundPicker(selection: $hourlyChimeSoundName)
+                    .disabled(!hourlyChimeEnabled)
+            } header: {
+                Text("Chime sound")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Hourly Chime")
     }
 }
 

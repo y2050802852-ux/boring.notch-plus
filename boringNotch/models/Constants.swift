@@ -178,7 +178,13 @@ extension Defaults.Keys {
     static let pomodoroFocusDuration = Key<TimeInterval>("pomodoroFocusDuration", default: 25 * 60)
     static let pomodoroShortBreakDuration = Key<TimeInterval>("pomodoroShortBreakDuration", default: 5 * 60)
     static let pomodoroLongBreakDuration = Key<TimeInterval>("pomodoroLongBreakDuration", default: 15 * 60)
-    static let pomodoroSoundEnabled = Key<Bool>("pomodoroSoundEnabled", default: true)
+    /// System sound name for the phase-end reminder; "none" is silent.
+    static let pomodoroSoundName = Key<String>("pomodoroSoundName", default: "Glass")
+
+    // MARK: Hourly Chime
+    static let hourlyChimeEnabled = Key<Bool>("hourlyChimeEnabled", default: false)
+    /// System sound name for the hourly chime; "none" is silent.
+    static let hourlyChimeSoundName = Key<String>("hourlyChimeSoundName", default: "Glass")
 
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
