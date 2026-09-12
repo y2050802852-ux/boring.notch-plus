@@ -261,7 +261,16 @@ hdiutil create -volname "boringNotch" -srcfolder <产物>/boringNotch.app -ov -f
 - 功能分支：`feature/pomodoro`（`9dedf2d` 类型检查 harness → `c3dd9f4` 番茄钟功能）
 - 出问题回滚：`git checkout main -- <文件>` 或 `git reset --hard 2a07b59`（放弃全部改动）
 
-### 12.2 番茄钟功能（feature/pomodoro 分支）
+### 12.2 整点报时 + 音效选择（feature/v2-hourly-chime 分支，2026-09-12）
+
+git：`feature/pomodoro` 已合回 `main` 并打 **v1** 标签（用户实测通过的稳定锚点）；v2 在 `feature/v2-hourly-chime`。
+
+- **整点报时**（`managers/HourlyChimeManager.swift` 新）：墙钟 Timer 定在下一个整点（`Calendar.nextDate`，tolerance 1s）；**60 秒宽限期守卫**——休眠跨过整点后 overdue 触发静默跳过，只报真正准点的钟。音效无条件播放（选了非"无声"时），视觉横幅经 `Notification.hourlyChimeTriggered` → AppDelegate `showHourlyChimeVisual()` 门控（仅 closed 且 !hideOnClosed 时显示，展开中/全屏只响声）。渲染走 `BoringViewCoordinator.hourlyChimeMessage`（3 秒自动清空）→ ContentView 在 sneak peek 行下方渲染小黑条（bell 图标 + 随机报时语，刘海宽度不变，复刻切歌显示效果）。报时语按凌晨/早上/中午/下午/晚上分时段话库随机（`randomMessage()`）。
+- **音效选择**（`components/Settings/SoundPicker.swift` 新）：`SystemSound` 枚举 = "none" 哨兵 + 14 个 macOS 系统音效名；`SystemSound.play(_:)` 统一播放入口；`SoundPicker` 可复用列表（None + 14 行，每行 ▶ 试听按钮，选中态圆圈图标）。番茄钟 `pomodoroSoundEnabled` 开关已废弃 → `pomodoroSoundName`（默认 Glass）；新增 `hourlyChimeEnabled`/`hourlyChimeSoundName`。
+- **设置**：Pomodoro 页的 Alerts 区换成 SoundPicker；新增「Hourly Chime」页（开关 + SoundPicker，禁用态置灰）。
+- 坑：pbxproj 里新文件的 fileRef 必须挂到与实际目录对应的 group（SoundPicker.swift 在 components/Settings/ 下，要挂 Settings 组，挂 components 组会解析成 components/SoundPicker.swift 导致 "Build input file cannot be found"）。
+
+### 12.3 番茄钟功能（feature/pomodoro 分支）
 
 设计共识（用户逐项确认）：标准番茄循环（专注→短休，每 4 轮长休，全自动衔接、可暂停/跳过/停止）；刘海新增第三个 Tab 作为控制面板；收起态倒计时**优先于**音乐 Live Activity；阶段结束自动展开刘海（复用 hover 展开动画）显示专属提醒页 + 系统提示音（可关）；全屏时延迟弹出（零新增权限）；独立 Pomodoro 设置页（三时长 + 声音开关）。
 
