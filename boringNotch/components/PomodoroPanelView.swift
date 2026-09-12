@@ -130,17 +130,13 @@ struct PomodoroLiveActivity: View {
                 .frame(width: max(0, vm.closedNotchSize.width - 20))
 
             TimelineView(.periodic(from: .now, by: 1)) { _ in
-                HStack(spacing: 4) {
-                    Text("🍅")
-                        .font(.system(size: fontSize))
-                    Text(PomodoroManager.formatted(PomodoroManager.shared.remaining))
-                        .font(.system(size: fontSize, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.white)
-                }
-                .fixedSize()
-                .padding(.trailing, 4)
-                .frame(width: Self.slotWidth, alignment: .trailing)
+                Text(PomodoroManager.formatted(PomodoroManager.shared.remaining))
+                    .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+                    .fixedSize()
+                    .padding(.trailing, 4)
+                    .frame(width: Self.slotWidth, alignment: .trailing)
             }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
