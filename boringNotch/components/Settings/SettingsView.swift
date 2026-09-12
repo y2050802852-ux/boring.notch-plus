@@ -1225,6 +1225,7 @@ struct Appearance: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
+    @Default(.idleWeatherEnabled) var idleWeatherEnabled
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -1448,9 +1449,11 @@ struct Appearance: View {
                     Text("Square")
                         .tag(MirrorShapeEnum.rectangle)
                 }
-                Defaults.Toggle(key: .showNotHumanFace) {
-                    Text("Show cool face animation while inactive")
+                Defaults.Toggle(key: .idleWeatherEnabled) {
+                    Text("Show weather while inactive")
                 }
+                WeatherLocationPicker()
+                    .disabled(!idleWeatherEnabled)
             } header: {
                 HStack {
                     Text("Additional features")
@@ -1857,4 +1860,90 @@ func warningBadge(_ text: String, _ description: String) -> some View {
 
 #Preview {
     HUD()
+}
+
+/// City search + manual override for the idle-weather location.
+struct WeatherLocationPicker: View {
+    @ObservedObject var weather = WeatherManager.shared
+    @State private var query = ""
+    @State private var results: [WeatherManager.GeoCity] = []
+    @State private var isSearching = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                TextField("搜索城市（如：杭州）", text: $query)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(search)
+                Button("搜索") { search() }
+                    .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
+            }
+
+            if isSearching {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .controlSize(.small)
+                    Spacer()
+                }
+            }
+
+            if !results.isEmpty {
+                List(results) { city in
+                    Button {
+                        WeatherManager.setManualLocation(
+                            WeatherLocation(latitude: city.latitude, longitude: city.longitude, name: city.name))
+                        results = []
+                        query = ""
+                    } label: {
+                        Text(city.displayName)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                .listStyle(.inset)
+                .frame(height: 140)
+            }
+
+            HStack {
+                currentSource
+                Spacer()
+                if WeatherManager.manualLocation != nil {
+                    Button("恢复自动定位") {
+                        WeatherManager.setManualLocation(nil)
+                    }
+                }
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.top, 2)
+    }
+
+    @ViewBuilder
+    private var currentSource: some View {
+        if let manual = WeatherManager.manualLocation {
+            Text("手动城市：\(manual.name)")
+        } else if let city = weather.autoDetectedCity {
+            Text("自动定位：\(city)")
+        } else if weather.isFetching {
+            Text("自动定位中…")
+        } else {
+            Text("尚未定位")
+        }
+    }
+
+    private func search() {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        isSearching = true
+        Task {
+            let cities = await WeatherManager.searchCities(trimmed)
+            await MainActor.run {
+                results = cities
+                isSearching = false
+            }
+        }
+    }
 }

@@ -36,7 +36,8 @@ struct ContentView: View {
 
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
-    @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.idleWeatherEnabled) var idleWeatherEnabled
+    @ObservedObject var weatherManager = WeatherManager.shared
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -77,8 +78,8 @@ struct ContentView: View {
             chinWidth += max(0, vm.effectiveClosedNotchHeight - 12)
                 + PomodoroLiveActivity.slotWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
-            && !vm.hideOnClosed
+            && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled
+            && weatherManager.current != nil && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
@@ -308,8 +309,8 @@ struct ContentView: View {
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
-                          BoringFaceAnimation()
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled && weatherManager.current != nil && !vm.hideOnClosed  {
+                          IdleWeatherView()
                        } else if vm.notchState == .open {
                            BoringHeader()
                                .frame(height: max(24, vm.effectiveClosedNotchHeight))
@@ -398,7 +399,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func BoringFaceAnimation() -> some View {
+    func IdleWeatherView() -> some View {
         HStack {
             HStack {
                 Rectangle()
@@ -410,7 +411,19 @@ struct ContentView: View {
                 Rectangle()
                     .fill(.black)
                     .frame(width: vm.closedNotchSize.width - 20)
-                MinimalFaceFeatures()
+                if let weather = weatherManager.current {
+                    let fontSize = min(12, max(9, vm.effectiveClosedNotchHeight * 0.4))
+                    HStack(spacing: 3) {
+                        Image(systemName: weather.symbolName)
+                            .font(.system(size: fontSize))
+                        Text(weather.temperatureText)
+                            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(.white)
+                    .fixedSize()
+                    .frame(width: 56)
+                }
             }
         }.frame(
             height: vm.effectiveClosedNotchHeight,

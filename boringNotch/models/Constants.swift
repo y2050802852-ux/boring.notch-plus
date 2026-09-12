@@ -104,7 +104,12 @@ extension Defaults.Keys {
     static let enableShadow = Key<Bool>("enableShadow", default: true)
     static let cornerRadiusScaling = Key<Bool>("cornerRadiusScaling", default: true)
 
-    static let showNotHumanFace = Key<Bool>("showNotHumanFace", default: false)
+    // MARK: Idle Weather
+    static let idleWeatherEnabled = Key<Bool>("idleWeatherEnabled", default: true)
+    /// Last successful weather reading (WeatherInfo, JSON) shown when offline.
+    static let weatherCacheData = Key<Data?>("weatherCacheData", default: nil)
+    /// Manual city override (WeatherLocation, JSON); nil = IP auto-detection.
+    static let weatherManualLocationData = Key<Data?>("weatherManualLocationData", default: nil)
     static let tileShowLabels = Key<Bool>("tileShowLabels", default: false)
     static let showCalendar = Key<Bool>("showCalendar", default: false)
     static let hideCompletedReminders = Key<Bool>("hideCompletedReminders", default: true)
