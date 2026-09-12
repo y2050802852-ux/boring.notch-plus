@@ -81,7 +81,7 @@ struct ContentView: View {
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled
             && weatherManager.current != nil && !vm.hideOnClosed
         {
-            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 72
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         }
 
         return chinWidth
@@ -400,33 +400,36 @@ struct ContentView: View {
 
     @ViewBuilder
     func IdleWeatherView() -> some View {
+        // Mirrors MusicLiveActivity's exact three-segment structure (album
+        // art block / filler / visualizer block) so the closed-notch width is
+        // identical whether the idle slot shows weather or music plays.
         HStack {
-            HStack {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(
-                        width: max(0, vm.effectiveClosedNotchHeight - 12),
-                        height: max(0, vm.effectiveClosedNotchHeight - 12)
-                    )
+            if let weather = weatherManager.current {
+                let sideSize = max(0, vm.effectiveClosedNotchHeight - 12)
+
+                Image(systemName: weather.symbolName)
+                    .font(.system(size: min(14, max(10, sideSize * 0.5))))
+                    .foregroundStyle(.white)
+                    .frame(width: sideSize, height: sideSize)
+
                 Rectangle()
                     .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 20)
-                if let weather = weatherManager.current {
-                    let fontSize = min(12, max(9, vm.effectiveClosedNotchHeight * 0.4))
-                    HStack(spacing: 3) {
-                        Image(systemName: weather.symbolName)
-                            .font(.system(size: fontSize))
-                        Text(weather.temperatureText)
-                            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
-                            .monospacedDigit()
-                    }
+                    .frame(
+                        width: max(0, vm.closedNotchSize.width
+                            - cornerRadiusInsets.closed.top))
+
+                Text(weather.temperatureText)
+                    .font(
+                        .system(size: min(12, max(9, sideSize * 0.45)), weight: .semibold, design: .rounded)
+                    )
+                    .monospacedDigit()
                     .foregroundStyle(.white)
-                    .fixedSize()
-                    .padding(.trailing, 4)
-                    .frame(width: 72, alignment: .trailing)
-                }
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                    .frame(width: sideSize, height: sideSize)
             }
-        }.frame(
+        }
+        .frame(
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
