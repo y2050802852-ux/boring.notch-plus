@@ -139,7 +139,8 @@ struct PomodoroLiveActivity: View {
                         .foregroundStyle(.white)
                 }
                 .fixedSize()
-                .frame(width: Self.slotWidth)
+                .padding(.trailing, 4)
+                .frame(width: Self.slotWidth, alignment: .trailing)
             }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
