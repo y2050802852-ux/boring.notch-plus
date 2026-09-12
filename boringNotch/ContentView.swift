@@ -87,6 +87,17 @@ struct ContentView: View {
         return chinWidth
     }
 
+    /// When the pomodoro countdown is live, the closed notch grows wider than
+    /// the music/idle states. Shifting the whole shape right by half of that
+    /// extra width keeps the left edge anchored where music/idle put it, so
+    /// only the right side visually extends.
+    private var pomodoroLeadingShift: CGFloat {
+        guard vm.notchState == .closed, pomodoroManager.isActive, !vm.hideOnClosed,
+              !coordinator.expandingView.show
+        else { return 0 }
+        return max(0, PomodoroLiveActivity.slotWidth - vm.effectiveClosedNotchHeight - 2)
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -119,6 +130,7 @@ struct ContentView: View {
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
                     )
+                    .padding(.leading, pomodoroLeadingShift)
                     .padding(
                         .bottom,
                         vm.effectiveClosedNotchHeight == 0 ? 10 : 0
@@ -216,6 +228,7 @@ struct ContentView: View {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
                         .frame(width: computedChinWidth, height: vm.chinHeight)
+                        .padding(.leading, pomodoroLeadingShift)
                 }
             }
         }
@@ -228,6 +241,7 @@ struct ContentView: View {
             anchor: .top
         )
         .animation(.smooth, value: gestureProgress)
+        .animation(.smooth, value: pomodoroManager.isActive)
         .background(dragDetector)
         .environmentObject(vm)
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
