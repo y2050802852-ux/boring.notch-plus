@@ -70,6 +70,15 @@ struct ShelfView: View {
                 content
                     .padding()
             }
+            .overlay(alignment: .topTrailing) {
+                if !tvm.isEmpty {
+                    HoverButton(icon: "trash", iconColor: .gray) {
+                        tvm.clearAll()
+                    }
+                    .help("Clear shelf")
+                    .padding(4)
+                }
+            }
             .transaction { transaction in
                 transaction.animation = vm.animation
             }
