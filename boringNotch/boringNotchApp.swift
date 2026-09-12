@@ -219,16 +219,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
 
-        DragDebugLog.log("handleDragEntersNotchRegion screen=\(uuid) showOnAllDisplays=\(Defaults[.showOnAllDisplays])")
-
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
             viewModel.open()
             coordinator.currentView = .shelf
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
             vm.open()
             coordinator.currentView = .shelf
-        } else {
-            DragDebugLog.log("NO branch taken — window.screen=\(window?.screen?.displayUUID ?? "nil")")
         }
     }
 

@@ -673,13 +673,10 @@ struct GeneralDropTargetDelegate: DropDelegate {
         // inside the app sandbox, so the notch auto-opens right here instead:
         // the drag session itself tells us a drop is hovering the notch.
         if vm.notchState == .closed, Defaults[.expandedDragDetection] {
-            DragDebugLog.log("dropEntered (closed) → auto-open notch + shelf")
             vm.open()
             withAnimation(.smooth) {
                 BoringViewCoordinator.shared.currentView = .shelf
             }
-        } else {
-            DragDebugLog.log("dropEntered state=\(vm.notchState == .closed ? "closed" : "open")")
         }
     }
 
@@ -697,7 +694,6 @@ struct GeneralDropTargetDelegate: DropDelegate {
         isTargeted = false
         let providers = info.itemProviders(
             for: [.fileURL, .url, .plainText, .utf8PlainText, .data])
-        DragDebugLog.log("performDrop providers=\(providers.count) closed=\(vm.notchState == .closed)")
         guard !providers.isEmpty else { return false }
 
         // Swallow the drop only when the shelf is the meaningful target:
