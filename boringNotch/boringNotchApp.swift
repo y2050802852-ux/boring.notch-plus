@@ -218,13 +218,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
         guard let uuid = screen.displayUUID else { return }
-        
+
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
             viewModel.open()
             coordinator.currentView = .shelf
         } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
             vm.open()
             coordinator.currentView = .shelf
+        }
+    }
+
+    /// A pomodoro phase ended: pop the notch open on the reminder view, or
+    /// defer the reminder if the notch is currently hidden (fullscreen media).
+    @MainActor
+    func openNotchForPomodoroReminder() {
+        var viewModel = vm
+        if Defaults[.showOnAllDisplays], let screenViewModel = viewModels[coordinator.selectedScreenUUID] {
+            viewModel = screenViewModel
+        }
+
+        if viewModel.hideOnClosed {
+            PomodoroManager.shared.markReminderDeferred()
+            return
+        }
+
+        closeNotchTask?.cancel()
+        closeNotchTask = nil
+        viewModel.open()
+        withAnimation(.smooth) {
+            coordinator.currentView = .pomodoro
         }
     }
 
@@ -404,6 +426,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         viewModel.close()
                     }
                 }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: Notification.Name.pomodoroPhaseEnded, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.openNotchForPomodoroReminder()
             }
         }
 

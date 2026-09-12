@@ -174,6 +174,12 @@ extension Defaults.Keys {
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
     
+    // MARK: Pomodoro
+    static let pomodoroFocusDuration = Key<TimeInterval>("pomodoroFocusDuration", default: 25 * 60)
+    static let pomodoroShortBreakDuration = Key<TimeInterval>("pomodoroShortBreakDuration", default: 5 * 60)
+    static let pomodoroLongBreakDuration = Key<TimeInterval>("pomodoroLongBreakDuration", default: 15 * 60)
+    static let pomodoroSoundEnabled = Key<Bool>("pomodoroSoundEnabled", default: true)
+
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
     

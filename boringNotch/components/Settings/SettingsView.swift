@@ -45,6 +45,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Battery") {
                     Label("Battery", systemImage: "battery.100.bolt")
                 }
+                NavigationLink(value: "Pomodoro") {
+                    Label("Pomodoro", systemImage: "timer")
+                }
 //                NavigationLink(value: "Downloads") {
 //                    Label("Downloads", systemImage: "square.and.arrow.down")
 //                }
@@ -83,6 +86,8 @@ struct SettingsView: View {
                     HUD()
                 case "Battery":
                     Charge()
+                case "Pomodoro":
+                    PomodoroSettings()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -379,6 +384,56 @@ struct Charge: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Battery")
+    }
+}
+
+struct PomodoroSettings: View {
+    @Default(.pomodoroFocusDuration) var focusDuration
+    @Default(.pomodoroShortBreakDuration) var shortBreakDuration
+    @Default(.pomodoroLongBreakDuration) var longBreakDuration
+
+    var body: some View {
+        Form {
+            Section {
+                durationStepper("Focus", minutes: Binding(
+                    get: { Int(focusDuration / 60) },
+                    set: { focusDuration = TimeInterval($0 * 60) }
+                ))
+                durationStepper("Short break", minutes: Binding(
+                    get: { Int(shortBreakDuration / 60) },
+                    set: { shortBreakDuration = TimeInterval($0 * 60) }
+                ))
+                durationStepper("Long break", minutes: Binding(
+                    get: { Int(longBreakDuration / 60) },
+                    set: { longBreakDuration = TimeInterval($0 * 60) }
+                ))
+            } header: {
+                Text("Timers")
+            } footer: {
+                Text("A long break follows every 4 focus sessions. Changes apply to the next phase.")
+            }
+            Section {
+                Defaults.Toggle(key: .pomodoroSoundEnabled) {
+                    Text("Play a sound when a phase ends")
+                }
+            } header: {
+                Text("Alerts")
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Pomodoro")
+    }
+
+    private func durationStepper(_ title: String, minutes: Binding<Int>) -> some View {
+        Stepper(value: minutes, in: 1...180) {
+            HStack {
+                Text(title)
+                Spacer()
+                Text("\(minutes.wrappedValue) min")
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
     }
 }
 
