@@ -93,7 +93,7 @@ struct PomodoroLiveActivity: View {
     @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
 
-    static let slotWidth: CGFloat = 88
+    static let slotWidth: CGFloat = 72
 
     private var musicActive: Bool {
         musicManager.isPlaying || !musicManager.isPlayerIdle
@@ -127,8 +127,7 @@ struct PomodoroLiveActivity: View {
 
             Rectangle()
                 .fill(.black)
-                .frame(
-                    width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
+                .frame(width: max(0, vm.closedNotchSize.width - 20))
 
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 HStack(spacing: 4) {

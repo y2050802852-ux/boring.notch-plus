@@ -248,6 +248,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         withAnimation(.smooth) {
             coordinator.currentView = .pomodoro
         }
+
+        // The reminder popup retracts itself after 5 seconds so it does not
+        // sit open forever when the user is away.
+        closeNotchTask = Task { [weak viewModel] in
+            do {
+                try await Task.sleep(for: .seconds(5))
+                await MainActor.run {
+                    viewModel?.close()
+                }
+            } catch { }
+        }
     }
 
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
