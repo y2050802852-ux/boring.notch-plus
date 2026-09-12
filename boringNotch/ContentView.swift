@@ -74,7 +74,8 @@ struct ContentView: View {
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && PomodoroManager.shared.isActive && !vm.hideOnClosed
         {
-            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 64
+            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12)
+                + PomodoroLiveActivity.slotWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -302,7 +303,7 @@ struct ContentView: View {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && pomodoroManager.isActive && !vm.hideOnClosed {
-                          PomodoroLiveActivity()
+                          PomodoroLiveActivity(albumArtNamespace: albumArtNamespace)
                               .transition(.opacity)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()

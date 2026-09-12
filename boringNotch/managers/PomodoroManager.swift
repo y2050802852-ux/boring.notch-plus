@@ -36,6 +36,9 @@ final class PomodoroManager: ObservableObject {
     @Published private(set) var phase: Phase = .focus
     @Published private(set) var isRunning = false
     @Published private(set) var completedFocusSessions = 0
+    /// Playful headline shown in the pomodoro tab after an automatic phase
+    /// change; nil falls back to the phase's default headline.
+    @Published private(set) var reminderMessage: String?
 
     private var endAt: Date?
     private var remainingOnPause: TimeInterval?
@@ -129,6 +132,7 @@ final class PomodoroManager: ObservableObject {
         stopEndTimer()
         endAt = nil
         remainingOnPause = nil
+        reminderMessage = nil
         advance(from: phase)
     }
 
@@ -138,6 +142,7 @@ final class PomodoroManager: ObservableObject {
         endAt = nil
         remainingOnPause = nil
         pendingReminderUntil = nil
+        reminderMessage = nil
         phase = .focus
         isRunning = false
         completedFocusSessions = 0
@@ -201,8 +206,42 @@ final class PomodoroManager: ObservableObject {
 
     // MARK: - Reminder
 
+    private static let focusEndMessages = [
+        "番茄熟啦，去休息一下吧 🍅",
+        "去喝口水，眨眨眼睛 💧",
+        "站起来伸个懒腰吧～",
+        "眼睛想放个假，去窗边看看远处 👀",
+        "摸鱼五分钟，快乐一整天 🐟",
+        "给大脑充个电，回来再战 🔋",
+        "偷偷躺平一会儿，没人看见 😌",
+    ]
+
+    private static let longBreakStartMessages = [
+        "四连胜！奖励自己一个长休息 🎉",
+        "好好歇会儿，出门散个步吧 🌿",
+        "这么专注，值得一个长长的大休息 ☕️",
+    ]
+
+    private static let breakEndMessages = [
+        "满血复活，继续冲 ⚡️",
+        "休息够啦，回来开工 💪",
+        "新的一轮，稳住，我们能赢 🔥",
+        "番茄计时器想你了，快回来 🍅",
+        "精神满满，冲鸭 ✨",
+    ]
+
+    /// Called after the phase has advanced; picks a fresh playful message for
+    /// the phase the timer just entered.
     private func announce() {
         pendingReminderUntil = nil
+        switch phase {
+        case .focus:
+            reminderMessage = Self.breakEndMessages.randomElement()
+        case .shortBreak:
+            reminderMessage = Self.focusEndMessages.randomElement()
+        case .longBreak:
+            reminderMessage = Self.longBreakStartMessages.randomElement()
+        }
         if Defaults[.pomodoroSoundEnabled] {
             NSSound(named: "Glass")?.play()
         }

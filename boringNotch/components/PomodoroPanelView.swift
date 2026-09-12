@@ -14,13 +14,16 @@ struct PomodoroPanelView: View {
     @ObservedObject var pomodoro = PomodoroManager.shared
 
     private var headline: String {
+        if let message = pomodoro.reminderMessage {
+            return message
+        }
         switch pomodoro.phase {
         case .focus:
-            return pomodoro.isRunning ? "Focus in progress 🍅" : "Ready to focus 🍅"
+            return pomodoro.isRunning ? "专注中 🍅" : "准备专注 🍅"
         case .shortBreak:
-            return "Take a break ☕️"
+            return "休息一下 ☕️"
         case .longBreak:
-            return "Long break 🌿"
+            return "长休息 🌿"
         }
     }
 
@@ -81,23 +84,51 @@ struct PomodoroPanelView: View {
 }
 
 // MARK: - Closed-state live activity (right of the real notch)
+//
+// With music playing the album art is kept on the left and the countdown takes
+// the right slot; without music the countdown sits alone next to the notch.
 
 struct PomodoroLiveActivity: View {
     @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject var musicManager = MusicManager.shared
+    let albumArtNamespace: Namespace.ID
+
+    static let slotWidth: CGFloat = 88
+
+    private var musicActive: Bool {
+        musicManager.isPlaying || !musicManager.isPlayerIdle
+    }
+
+    private var sideSize: CGFloat {
+        max(0, vm.effectiveClosedNotchHeight - 12)
+    }
 
     private var fontSize: CGFloat {
-        min(13, max(9, vm.effectiveClosedNotchHeight * 0.42))
+        min(12, max(9, vm.effectiveClosedNotchHeight * 0.4))
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            Rectangle()
-                .fill(.clear)
-                .frame(width: max(0, vm.effectiveClosedNotchHeight - 12))
+            if musicActive {
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .clipped()
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    )
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                    .frame(width: sideSize, height: sideSize)
+            } else {
+                Rectangle()
+                    .fill(.clear)
+                    .frame(width: sideSize)
+            }
 
             Rectangle()
                 .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
+                .frame(
+                    width: max(0, vm.closedNotchSize.width - cornerRadiusInsets.closed.top))
 
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 HStack(spacing: 4) {
@@ -108,7 +139,8 @@ struct PomodoroLiveActivity: View {
                         .monospacedDigit()
                         .foregroundStyle(.white)
                 }
-                .frame(width: 64)
+                .fixedSize()
+                .frame(width: Self.slotWidth)
             }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
