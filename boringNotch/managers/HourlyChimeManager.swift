@@ -28,9 +28,29 @@ final class HourlyChimeManager: ObservableObject {
     private static let gracePeriod: TimeInterval = 60
 
     private var chimeTimer: Timer?
+    private var isScreenLocked = false
     private var cancellables: Set<AnyCancellable> = []
 
     private init() {
+        // Stay silent while the screen is locked (no makeup chime on unlock;
+        // the schedule simply resumes at the next hour).
+        DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(rawValue: "com.apple.screenIsLocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.isScreenLocked = true
+            }
+        }
+        DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.isScreenLocked = false
+            }
+        }
+
         Defaults.publisher(.hourlyChimeEnabled)
             .receive(on: RunLoop.main)
             .sink { [weak self] change in
@@ -79,6 +99,10 @@ final class HourlyChimeManager: ObservableObject {
     private func fired(at scheduled: Date) {
         scheduleNext()
         guard Date().timeIntervalSince(scheduled) < Self.gracePeriod else { return }
+
+        // Locked screen: skip this hour entirely (sleep is already covered —
+        // an overdue fire after wake fails the grace-period check above).
+        guard !isScreenLocked else { return }
         chime()
     }
 
