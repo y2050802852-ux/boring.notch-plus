@@ -81,7 +81,7 @@ struct ContentView: View {
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled
             && weatherManager.current != nil && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 72
         }
 
         return chinWidth
@@ -422,7 +422,8 @@ struct ContentView: View {
                     }
                     .foregroundStyle(.white)
                     .fixedSize()
-                    .frame(width: 56)
+                    .padding(.trailing, 4)
+                    .frame(width: 72, alignment: .trailing)
                 }
             }
         }.frame(
