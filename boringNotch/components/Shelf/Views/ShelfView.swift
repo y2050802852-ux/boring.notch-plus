@@ -33,6 +33,7 @@ struct ShelfView: View {
     }
     
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
+        DragDebugLog.log("panel drop received \(providers.count) providers")
         guard !selection.isDragging else { return false }
         vm.dropEvent = true
         ShelfStateViewModel.shared.load(providers)

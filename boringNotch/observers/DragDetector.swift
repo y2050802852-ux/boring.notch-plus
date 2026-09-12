@@ -8,6 +8,23 @@
 import Cocoa
 import UniformTypeIdentifiers
 
+/// Temporary file-based debug logging (unified log redacts NSLog content,
+/// and the app sandbox blocks /tmp — so log into the container temp dir).
+enum DragDebugLog {
+    static let filePath = NSTemporaryDirectory() + "drag_debug_lines.log"
+
+    static func log(_ message: String) {
+        let line = "\(Date()) \(message)\n"
+        if let handle = FileHandle(forWritingAtPath: filePath) {
+            defer { handle.closeFile() }
+            handle.seekToEndOfFile()
+            handle.write(line.data(using: .utf8)!)
+        } else {
+            try? line.write(toFile: filePath, atomically: true, encoding: .utf8)
+        }
+    }
+}
+
 final class DragDetector {
 
     // MARK: - Callbacks
@@ -51,6 +68,8 @@ final class DragDetector {
     func startMonitoring() {
         stopMonitoring()
 
+        DragDebugLog.log("startMonitoring region=\(NSStringFromRect(notchRegion))")
+
         // Track pasteboard to detect content drag
         mouseDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] _ in
             guard let self = self else { return }
@@ -58,6 +77,7 @@ final class DragDetector {
             self.isDragging = true
             self.isContentDragging = false
             self.hasEnteredNotchRegion = false
+            DragDebugLog.log("mouseDown changeCount=\(self.pasteboardChangeCount)")
         }
 
         // Track drag movement and notch region intersection
@@ -66,21 +86,26 @@ final class DragDetector {
             guard self.isDragging else { return }
 
             let newContent = self.dragPasteboard.changeCount != self.pasteboardChangeCount
-            
+
             // Detect if actual content is being dragged AND it's valid content
-            if newContent && !self.isContentDragging && self.hasValidDragContent() {
-                self.isContentDragging = true
+            if newContent && !self.isContentDragging {
+                let types = (self.dragPasteboard.types ?? []).map { $0.rawValue }.joined(separator: ",")
+                DragDebugLog.log("newContent types=[\(types)] valid=\(self.hasValidDragContent())")
+                if self.hasValidDragContent() {
+                    self.isContentDragging = true
+                }
             }
 
             // Only process position when content is being dragged
             if self.isContentDragging {
                 let mouseLocation = NSEvent.mouseLocation
                 self.onDragMove?(mouseLocation)
-                
+
                 // Track notch region entry/exit
                 let containsMouse = self.notchRegion.contains(mouseLocation)
                 if containsMouse && !self.hasEnteredNotchRegion {
                     self.hasEnteredNotchRegion = true
+                    DragDebugLog.log("ENTERED notch region at \(NSStringFromPoint(mouseLocation))")
                     self.onDragEntersNotchRegion?()
                 } else if !containsMouse && self.hasEnteredNotchRegion {
                     self.hasEnteredNotchRegion = false

@@ -394,7 +394,7 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
-        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+        .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting, vm: vm))
     }
 
     @ViewBuilder
@@ -665,9 +665,22 @@ struct FullScreenDropDelegate: DropDelegate {
 
 struct GeneralDropTargetDelegate: DropDelegate {
     @Binding var isTargeted: Bool
+    var vm: BoringViewModel
 
     func dropEntered(info: DropInfo) {
         isTargeted = true
+        // NSEvent-based DragDetector cannot observe the drag pasteboard from
+        // inside the app sandbox, so the notch auto-opens right here instead:
+        // the drag session itself tells us a drop is hovering the notch.
+        if vm.notchState == .closed, Defaults[.expandedDragDetection] {
+            DragDebugLog.log("dropEntered (closed) → auto-open notch + shelf")
+            vm.open()
+            withAnimation(.smooth) {
+                BoringViewCoordinator.shared.currentView = .shelf
+            }
+        } else {
+            DragDebugLog.log("dropEntered state=\(vm.notchState == .closed ? "closed" : "open")")
+        }
     }
 
     func dropExited(info: DropInfo) {
@@ -675,10 +688,25 @@ struct GeneralDropTargetDelegate: DropDelegate {
     }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        return DropProposal(operation: .cancel)
+        // Accept the drop so releasing the mouse lands in performDrop even
+        // while the notch is still closed.
+        return DropProposal(operation: .copy)
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        isTargeted = false
+        let providers = info.itemProviders(
+            for: [.fileURL, .url, .plainText, .utf8PlainText, .data])
+        DragDebugLog.log("performDrop providers=\(providers.count) closed=\(vm.notchState == .closed)")
+        guard !providers.isEmpty else { return false }
+
+        // Swallow the drop only when the shelf is the meaningful target:
+        // closed notch, or open on the shelf tab. Dropping on the home tab
+        // keeps the previous behavior (cancelled).
+        if vm.notchState == .closed || BoringViewCoordinator.shared.currentView == .shelf {
+            ShelfStateViewModel.shared.load(providers)
+            return true
+        }
         return false
     }
 }

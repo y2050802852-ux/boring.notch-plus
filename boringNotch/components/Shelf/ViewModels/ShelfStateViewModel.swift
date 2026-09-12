@@ -93,6 +93,7 @@ final class ShelfStateViewModel: ObservableObject {
         isLoading = true
         Task { [weak self] in
             let dropped = await ShelfDropService.items(from: providers)
+            DragDebugLog.log("ShelfDropService produced \(dropped.count) items from \(providers.count) providers")
             await MainActor.run {
                 self?.add(dropped)
                 self?.isLoading = false
