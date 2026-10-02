@@ -314,7 +314,7 @@ class MusicManager: ObservableObject {
         end tell
         """
 
-        if let result = try? await AppleScriptHelper.execute(script) {
+        if let result = try? await AppleScriptHelper.executeIfRunning("com.apple.Music", script) {
             let loved = result.booleanValue
             self.isFavoriteTrack = loved
             self.forceUpdate()
@@ -375,7 +375,7 @@ class MusicManager: ObservableObject {
                         end if
                     end tell
                     """
-                    if let result = try await AppleScriptHelper.execute(script), let lyricsString = result.stringValue, !lyricsString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    if let result = try? await AppleScriptHelper.executeIfRunning("com.apple.Music", script), let lyricsString = result.stringValue, !lyricsString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         self.currentLyrics = lyricsString.trimmingCharacters(in: .whitespacesAndNewlines)
                         self.isFetchingLyrics = false
                         self.syncedLyrics = []
@@ -689,12 +689,6 @@ class MusicManager: ObservableObject {
     func syncVolumeFromActiveApp() async {
         guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
 
-        // The reported bundle ID can outlive its app (stale/remote now-playing
-        // state), and any Apple event to a closed Music/Spotify auto-launches
-        // it — only sync volume while the app is actually running.
-        let runningApps = NSWorkspace.shared.runningApplications
-        guard runningApps.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
-
         var script: String?
         if bundleID == "com.apple.Music" {
             script = "tell application \"Music\" to get sound volume"
@@ -704,9 +698,9 @@ class MusicManager: ObservableObject {
             // For unsupported apps, don't sync volume
             return
         }
-        
+
         if let volumeScript = script,
-           let result = try? await AppleScriptHelper.execute(volumeScript) {
+           let result = try? await AppleScriptHelper.executeIfRunning(bundleID, volumeScript) {
             let volumeValue = result.int32Value
             let currentVolume = Double(volumeValue) / 100.0
             

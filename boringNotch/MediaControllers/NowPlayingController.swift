@@ -46,7 +46,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
                 end try
             end tell
             """
-            try? await AppleScriptHelper.executeVoid(script)
+            try? await AppleScriptHelper.executeVoidIfRunning("com.apple.Music", script)
         }
         
         // Update the favorite state locally and fetch updated info
@@ -167,23 +167,16 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
 
         let bundleID = playbackState.bundleIdentifier
         if !bundleID.isEmpty {
-            if bundleID == "com.apple.Music" && isAppleMusicRunning() {
+            if bundleID == "com.apple.Music" {
                 let script = "tell application \"Music\" to set sound volume to \(volumePercentage)"
-                try? await AppleScriptHelper.executeVoid(script)
+                try? await AppleScriptHelper.executeVoidIfRunning("com.apple.Music", script)
             } else if bundleID == "com.spotify.client" {
                 let script = "tell application \"Spotify\" to set sound volume to \(volumePercentage)"
-                try? await AppleScriptHelper.executeVoid(script)
+                try? await AppleScriptHelper.executeVoidIfRunning("com.spotify.client", script)
             }
         }
 
         playbackState.volume = clampedLevel
-    }
-
-    // MediaRemote keeps reporting the last now-playing source after it quits,
-    // and any Apple event sent to Music auto-launches it — so never script
-    // Music unless it is actually running.
-    private func isAppleMusicRunning() -> Bool {
-        NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Music" }
     }
     
     // MARK: - Setup Methods
@@ -302,7 +295,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
     private func fetchFavoriteStateIfSupported() async {
         let bundleID = playbackState.bundleIdentifier
 
-        if bundleID == "com.apple.Music", isAppleMusicRunning() {
+        if bundleID == "com.apple.Music" {
             let script = """
             tell application "Music"
                 try
@@ -312,7 +305,7 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
                 end try
             end tell
             """
-            if let result = try? await AppleScriptHelper.execute(script) {
+            if let result = try? await AppleScriptHelper.executeIfRunning("com.apple.Music", script) {
                 var updated = self.playbackState
                 updated.isFavorite = result.booleanValue
                 self.playbackState = updated
