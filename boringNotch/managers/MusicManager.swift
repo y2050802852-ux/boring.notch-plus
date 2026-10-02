@@ -688,7 +688,13 @@ class MusicManager: ObservableObject {
     
     func syncVolumeFromActiveApp() async {
         guard let bundleID = bundleIdentifier, !bundleID.isEmpty else { return }
-        
+
+        // The reported bundle ID can outlive its app (stale/remote now-playing
+        // state), and any Apple event to a closed Music/Spotify auto-launches
+        // it — only sync volume while the app is actually running.
+        let runningApps = NSWorkspace.shared.runningApplications
+        guard runningApps.contains(where: { $0.bundleIdentifier == bundleID }) else { return }
+
         var script: String?
         if bundleID == "com.apple.Music" {
             script = "tell application \"Music\" to get sound volume"
