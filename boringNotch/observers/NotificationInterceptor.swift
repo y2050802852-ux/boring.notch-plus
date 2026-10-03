@@ -39,6 +39,7 @@ final class NotificationInterceptor: ObservableObject {
     private var seenBannerKeys: [String: Date] = [:]
     private var hideWorkItem: DispatchWorkItem?
     private var running = false
+    private var emptyTicks = 0
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -126,15 +127,14 @@ final class NotificationInterceptor: ObservableObject {
 
     private func handleAXEvent(element: AXUIElement, notification: String) {
         guard running, Defaults[.notificationInterceptor] else { return }
-        let sub = axStr(element, kAXSubroleAttribute) ?? ""
-        let title = axStr(element, kAXTitleAttribute) ?? ""
-        guard sub == "AXSystemDialog", title == "Notification Center" else { return }
-
-        // A banner window just appeared: hide it (per settings) and start
-        // scanning for banner elements inside it.
-        hideBannerWindowIfNeeded(element)
+        // NOTE: the AXWindowCreated event fires before the window's
+        // subrole/title are populated (they read AXUnknown/"" at callback
+        // time) — filtering here would drop every event. Just make sure the
+        // scan is running; the tick re-checks for the banner host window and
+        // self-terminates if no banner shows up.
         scanBanners(in: element)
         if scanTimer == nil {
+            emptyTicks = 0
             scanTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
                 Task { @MainActor in
                     self?.scanTick()
@@ -143,28 +143,35 @@ final class NotificationInterceptor: ObservableObject {
         }
     }
 
-    private func scanTick() {
-        guard running, Defaults[.notificationInterceptor] else {
-            scanTimer?.invalidate(); scanTimer = nil
-            return
-        }
+    private func findBannerHost() -> AXUIElement? {
         guard let nc = NSWorkspace.shared.runningApplications.first(where: {
             $0.bundleIdentifier == "com.apple.notificationcenterui"
-        }), nc.processIdentifier != 0 else { return }
+        }), nc.processIdentifier != 0 else { return nil }
         let app = AXUIElementCreateApplication(nc.processIdentifier)
-        let wins = axList(app, kAXWindowsAttribute)
-        let bannerHost = wins.first { w in
+        return axList(app, kAXWindowsAttribute).first { w in
             (axStr(w, kAXSubroleAttribute) ?? "") == "AXSystemDialog"
                 && (axStr(w, kAXTitleAttribute) ?? "") == "Notification Center"
         }
-        guard let host = bannerHost else {
-            // all banners gone
-            scanTimer?.invalidate()
-            scanTimer = nil
-            seenBannerKeys.removeAll()
+    }
+
+    private func scanTick() {
+        guard running, Defaults[.notificationInterceptor] else {
+            stopScan()
             return
         }
+        guard let host = findBannerHost() else {
+            emptyTicks += 1
+            if emptyTicks > 15 { stopScan() }
+            return
+        }
+        emptyTicks = 0
         scanBanners(in: host)
+    }
+
+    private func stopScan() {
+        scanTimer?.invalidate()
+        scanTimer = nil
+        seenBannerKeys.removeAll()
     }
 
     private func scanBanners(in window: AXUIElement) {
