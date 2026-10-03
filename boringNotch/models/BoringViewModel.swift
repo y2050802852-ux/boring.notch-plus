@@ -60,8 +60,14 @@ class BoringViewModel: NSObject, ObservableObject {
         closedNotchSize = notchSize
 
         Publishers.CombineLatest3($dropZoneTargeting, $dragDetectorTargeting, $generalDropTargeting)
-            .map { shelf, drag, general in
-                shelf || drag || general
+            .map { [weak self] shelf, drag, general in
+                // The general delegate covers the whole window (it exists to
+                // keep the drag session alive and catch drops), so it may only
+                // feed the trigger while the notch is open. Otherwise every
+                // stray file drag near the top of the screen would pop the
+                // shelf open; the closed-state trigger is dragDetector's job.
+                guard let self, self.notchState == .open else { return shelf || drag }
+                return shelf || drag || general
             }
             .assign(to: \.anyDropZoneTargeting, on: self)
             .store(in: &cancellables)

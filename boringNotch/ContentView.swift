@@ -240,13 +240,15 @@ struct ContentView: View {
         )
         .animation(.smooth, value: gestureProgress)
         .animation(.smooth, value: pomodoroManager.isActive)
-        .background(dragDetector)
+        .background(alignment: .top) {
+            dragDetector
+        }
         .environmentObject(vm)
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
             if isTargeted {
-                if vm.notchState == .closed {
+                if vm.notchState == .closed, Defaults[.expandedDragDetection] {
                     coordinator.currentView = .shelf
                     doOpen()
                 }
@@ -553,8 +555,11 @@ struct ContentView: View {
     @ViewBuilder
     var dragDetector: some View {
         if Defaults[.boringShelf] && vm.notchState == .closed {
+            // Trigger region = the visible closed notch bar plus a small
+            // bottom buffer — NOT the whole window, which made any file drag
+            // passing near the top of the screen pop the shelf open.
             Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: computedChinWidth, height: vm.effectiveClosedNotchHeight + 12)
                 .contentShape(Rectangle())
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
             vm.dropEvent = true
@@ -700,15 +705,6 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         isTargeted = true
-        // NSEvent-based DragDetector cannot observe the drag pasteboard from
-        // inside the app sandbox, so the notch auto-opens right here instead:
-        // the drag session itself tells us a drop is hovering the notch.
-        if vm.notchState == .closed, Defaults[.expandedDragDetection] {
-            vm.open()
-            withAnimation(.smooth) {
-                BoringViewCoordinator.shared.currentView = .shelf
-            }
-        }
     }
 
     func dropExited(info: DropInfo) {
