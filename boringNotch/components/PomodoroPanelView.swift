@@ -93,7 +93,15 @@ struct PomodoroLiveActivity: View {
     @ObservedObject var musicManager = MusicManager.shared
     let albumArtNamespace: Namespace.ID
 
-    static let slotWidth: CGFloat = 80
+    // Closed-notch geometry mirrors MusicLiveActivity: a sideSize block
+    // centered in a left slot matching the music/idle states, then a wider
+    // countdown slot on the right so the pomodoro notch leans appropriately
+    // wider without going lopsided.
+    static let slotWidth: CGFloat = 56
+
+    private var sideSlot: CGFloat {
+        max(0, vm.effectiveClosedNotchHeight - 12) + 10
+    }
 
     private var musicActive: Bool {
         musicManager.isPlaying || !musicManager.isPlayerIdle
@@ -109,34 +117,37 @@ struct PomodoroLiveActivity: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            if musicActive {
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .clipped()
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
-                    )
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                    .frame(width: sideSize, height: sideSize)
-            } else {
-                Rectangle()
-                    .fill(.clear)
-                    .frame(width: sideSize)
+            Group {
+                if musicActive {
+                    Image(nsImage: musicManager.albumArt)
+                        .resizable()
+                        .clipped()
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                        )
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                        .frame(width: sideSize, height: sideSize)
+                } else {
+                    Rectangle()
+                        .fill(.clear)
+                        .frame(width: sideSize)
+                }
             }
+            .frame(width: sideSlot)
 
             Rectangle()
                 .fill(.black)
-                .frame(width: max(0, vm.closedNotchSize.width - 20))
+                .frame(width: max(0, vm.closedNotchSize.width))
 
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(PomodoroManager.formatted(PomodoroManager.shared.remaining))
                     .font(.system(size: fontSize, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.white)
-                    .fixedSize()
-                    .padding(.trailing, 4)
-                    .frame(width: Self.slotWidth, alignment: .trailing)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .frame(width: Self.slotWidth, alignment: .center)
             }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)

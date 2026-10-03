@@ -75,7 +75,10 @@ struct ContentView: View {
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && PomodoroManager.shared.isActive && !vm.hideOnClosed
         {
-            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12)
+            // Left slot stays identical to the music/idle states; only the
+            // countdown slot is wider, so the pomodoro notch leans a bit
+            // wider overall without going lopsided.
+            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 10
                 + PomodoroLiveActivity.slotWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled
@@ -87,15 +90,11 @@ struct ContentView: View {
         return chinWidth
     }
 
-    /// When the pomodoro countdown is live, the closed notch grows wider than
-    /// the music/idle states. Shifting the whole shape right by half of that
-    /// extra width keeps the left edge anchored where music/idle put it, so
-    /// only the right side visually extends.
-    private var pomodoroLeadingShift: CGFloat {
-        guard vm.notchState == .closed, pomodoroManager.isActive, !vm.hideOnClosed,
-              !coordinator.expandingView.show
-        else { return 0 }
-        return max(0, PomodoroLiveActivity.slotWidth - vm.effectiveClosedNotchHeight - 2)
+    /// Width of the black extension on each side of the hardware notch in the
+    /// closed state (half of the music/idle widening). Side content is
+    /// centered inside this slot so it never hugs the notch or the edge.
+    var closedSideSlot: CGFloat {
+        max(0, vm.effectiveClosedNotchHeight - 12) + 10
     }
 
     var body: some View {
@@ -130,7 +129,7 @@ struct ContentView: View {
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
                     )
-                    .padding(.leading, pomodoroLeadingShift)
+                    .padding(.leading, 0)
                     .padding(
                         .bottom,
                         vm.effectiveClosedNotchHeight == 0 ? 10 : 0
@@ -228,7 +227,6 @@ struct ContentView: View {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
                         .frame(width: computedChinWidth, height: vm.chinHeight)
-                        .padding(.leading, pomodoroLeadingShift)
                 }
             }
         }
@@ -417,7 +415,9 @@ struct ContentView: View {
         // Mirrors MusicLiveActivity's exact three-segment structure (album
         // art block / filler / visualizer block) so the closed-notch width is
         // identical whether the idle slot shows weather or music plays.
-        HStack {
+        // spacing 0: the row must exactly fill the widened notch so the
+        // left/right black extents stay equal.
+        HStack(spacing: 0) {
             if let weather = weatherManager.current {
                 let sideSize = max(0, vm.effectiveClosedNotchHeight - 12)
 
@@ -425,12 +425,12 @@ struct ContentView: View {
                     .font(.system(size: min(14, max(10, sideSize * 0.5))))
                     .foregroundStyle(.white)
                     .frame(width: sideSize, height: sideSize)
+                    .frame(width: closedSideSlot)
 
                 Rectangle()
                     .fill(.black)
                     .frame(
-                        width: max(0, vm.closedNotchSize.width
-                            - cornerRadiusInsets.closed.top))
+                        width: max(0, vm.closedNotchSize.width))
 
                 Text(weather.temperatureText)
                     .font(
@@ -440,7 +440,7 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
                     .lineLimit(1)
-                    .frame(width: sideSize, height: sideSize)
+                    .frame(width: closedSideSlot, height: sideSize)
             }
         }
         .frame(
@@ -451,7 +451,7 @@ struct ContentView: View {
 
     @ViewBuilder
     func MusicLiveActivity() -> some View {
-        HStack {
+        HStack(spacing: 0) {
             Image(nsImage: musicManager.albumArt)
                 .resizable()
                 .clipped()
@@ -464,6 +464,7 @@ struct ContentView: View {
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
                 )
+                .frame(width: closedSideSlot)
 
             Rectangle()
                 .fill(.black)
@@ -509,7 +510,6 @@ struct ContentView: View {
                         && Defaults[.sneakPeekStyles] == .inline)
                         ? 380
                         : vm.closedNotchSize.width
-                            + -cornerRadiusInsets.closed.top
                 )
 
             HStack {
@@ -534,7 +534,7 @@ struct ContentView: View {
             .frame(
                 width: max(
                     0,
-                    vm.effectiveClosedNotchHeight - 12
+                    closedSideSlot
                         + gestureProgress / 2
                 ),
                 height: max(
