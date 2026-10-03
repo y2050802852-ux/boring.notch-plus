@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7E0B00000000AAAA11119001 /* NotificationInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0B00000000AAAA11110001 /* NotificationInterceptor.swift */; };
+		7E0B00000000AAAA11119002 /* NotificationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E0B00000000AAAA11110002 /* NotificationViews.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -184,6 +186,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7E0B00000000AAAA11110001 /* NotificationInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationInterceptor.swift; sourceTree = "<group>"; };
+		7E0B00000000AAAA11110002 /* NotificationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViews.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -477,6 +481,7 @@
 				111BE9942ECF2DEF0079DD4E /* DragDetector.swift */,
 				B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */,
 				5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */,
+				7E0B00000000AAAA11110001 /* NotificationInterceptor.swift */,
 			);
 			path = observers;
 			sourceTree = "<group>";
@@ -487,6 +492,14 @@
 				1443E7F22C609DCE0027C1FC /* matters.swift */,
 			);
 			path = sizing;
+			sourceTree = "<group>";
+		};
+		7E0B00000000AAAA11110003 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				7E0B00000000AAAA11110002 /* NotificationViews.swift */,
+			);
+			path = Notifications;
 			sourceTree = "<group>";
 		};
 		1471639B2C5D362F0068B555 /* components */ = {
@@ -507,6 +520,7 @@
 				B10F84A22C6C9596009F3026 /* TestView.swift */,
 				507266DA2C908E2E00A2D00D /* HoverButton.swift */,
 				AA00B0BA5E55F10000000003 /* PomodoroPanelView.swift */,
+				7E0B00000000AAAA11110003 /* Notifications */,
 				B1F747F82EC7E94000F841DB /* LottieView.swift */,
 			);
 			path = components;
@@ -922,6 +936,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E0B00000000AAAA11119001 /* NotificationInterceptor.swift in Sources */,
+				7E0B00000000AAAA11119002 /* NotificationViews.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
 				1100292A2E8691B400035A57 /* FileShareView.swift in Sources */,

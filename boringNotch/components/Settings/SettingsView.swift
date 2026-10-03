@@ -57,6 +57,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Notifications") {
+                    Label("Notifications", systemImage: "bell.badge")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -95,6 +98,8 @@ struct SettingsView: View {
                     HourlyChimeSettings()
                 case "Shelf":
                     Shelf()
+                case "Notifications":
+                    NotificationSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -646,6 +651,104 @@ struct HUD: View {
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
             if let granted = notification.userInfo?["granted"] as? Bool {
                 accessibilityAuthorized = granted
+            }
+        }
+    }
+}
+
+struct NotificationSettings: View {
+    @Default(.notificationInterceptor) var notificationInterceptor: Bool
+    @Default(.notificationHideOriginal) var notificationHideOriginal: Bool
+    @Default(.notificationHideOffScreen) var notificationHideOffScreen: Bool
+    @Default(.notificationHistoryLimit) var notificationHistoryLimit: Int
+    @Default(.notificationDisplayDuration) var notificationDisplayDuration: Double
+    @Default(.notificationBlockedApps) var notificationBlockedApps: String
+    @State private var accessibilityAuthorized = false
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Intercept and replace notifications", isOn: $notificationInterceptor)
+                    .disabled(!accessibilityAuthorized)
+                    .onChange(of: notificationInterceptor) {
+                        NotificationInterceptor.shared.updateRunning()
+                    }
+
+                if !accessibilityAuthorized {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Accessibility access is required to observe notifications.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Button("Request Accessibility") {
+                            if let settingsURL = URL(
+                                string:
+                                    "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                            ) {
+                                NSWorkspace.shared.open(settingsURL)
+                            }
+                            XPCHelperClient.shared.requestAccessibilityAuthorization()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding(.top, 6)
+                }
+            } header: {
+                Text("Notification replacement")
+            } footer: {
+                Text("Banners from apps are transcribed into the notch and hidden; the Notification Center list keeps every notification. Requires Accessibility (shared with HUD replacement).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Hide the original banner", isOn: $notificationHideOriginal)
+                Picker("Hide method", selection: $notificationHideOffScreen) {
+                    Text("Move off-screen (keep in list)").tag(true)
+                    Text("Close (remove from list)").tag(false)
+                }
+                .disabled(!notificationHideOriginal)
+                Stepper(value: $notificationDisplayDuration, in: 2...8, step: 1) {
+                    HStack {
+                        Text("Sneak peek duration")
+                        Spacer()
+                        Text("\(Int(notificationDisplayDuration)) seconds")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Stepper(value: $notificationHistoryLimit, in: 5...50, step: 5) {
+                    HStack {
+                        Text("History size")
+                        Spacer()
+                        Text("\(notificationHistoryLimit) items")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text("Behavior")
+            } footer: {
+                Text("The original banner flashes for a fraction of a second before it is hidden — macOS renders banners itself and this cannot be prevented.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                TextField("Comma-separated app names to ignore", text: $notificationBlockedApps)
+            } header: {
+                Text("Excluded apps")
+            } footer: {
+                Text("Banners from these apps are left untouched and shown by macOS normally.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Notifications")
+        .task {
+            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { @MainActor in
+                accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
             }
         }
     }

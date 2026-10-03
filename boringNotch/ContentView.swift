@@ -15,6 +15,7 @@ import SwiftUIIntrospect
 
 @MainActor
 struct ContentView: View {
+    @StateObject private var notificationInterceptor = NotificationInterceptor.shared
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var webcamManager = WebcamManager.shared
 
@@ -70,6 +71,10 @@ struct ContentView: View {
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
+        {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            && notificationInterceptor.displayedNotification != nil && !vm.hideOnClosed
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
@@ -317,6 +322,10 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
+                      } else if !coordinator.expandingView.show && vm.notchState == .closed
+                          && notificationInterceptor.displayedNotification != nil && !vm.hideOnClosed {
+                          NotificationSneakPeekView(record: notificationInterceptor.displayedNotification!)
+                              .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && pomodoroManager.isActive && !vm.hideOnClosed {
                           PomodoroLiveActivity(albumArtNamespace: albumArtNamespace)
                               .transition(.opacity)
@@ -397,6 +406,8 @@ struct ContentView: View {
                         ShelfView()
                     case .pomodoro:
                         PomodoroPanelView()
+                    case .notifications:
+                        NotificationListView()
                     }
                 }
                 .transition(

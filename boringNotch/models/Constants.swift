@@ -173,6 +173,14 @@ extension Defaults.Keys {
     static let autoRemoveShelfItems = Key<Bool>("autoRemoveShelfItems", default: false)
     static let expandedDragDetection = Key<Bool>("expandedDragDetection", default: true)
     
+    // MARK: Notification interceptor
+    static let notificationInterceptor = Key<Bool>("notificationInterceptor", default: false)
+    static let notificationHideOriginal = Key<Bool>("notificationHideOriginal", default: true)
+    static let notificationHideOffScreen = Key<Bool>("notificationHideOffScreen", default: true)
+    static let notificationHistoryLimit = Key<Int>("notificationHistoryLimit", default: 20)
+    static let notificationDisplayDuration = Key<Double>("notificationDisplayDuration", default: 4)
+    static let notificationBlockedApps = Key<String>("notificationBlockedApps", default: "")
+    
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

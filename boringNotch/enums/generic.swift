@@ -28,6 +28,12 @@ public enum NotchViews {
     case home
     case shelf
     case pomodoro
+    case notifications
+}
+
+public enum NotificationHideMode: String, Codable, CaseIterable {
+    case offScreen
+    case close
 }
 
 enum SettingsEnum {

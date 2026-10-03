@@ -1001,6 +1001,206 @@
         }
       }
     },
+    "Accessibility access is required to observe notifications." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "观察系统通知需要辅助功能权限。"
+          }
+        }
+      }
+    },
+    "Banners from apps are transcribed into the notch and hidden; the Notification Center list keeps every notification. Requires Accessibility (shared with HUD replacement)." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用横幅会被转写到刘海并隐藏;通知中心列表保留所有通知。需要辅助功能权限(与 HUD 替换共用)。"
+          }
+        }
+      }
+    },
+    "Banners from these apps are left untouched and shown by macOS normally." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些应用的通知保持原样,由 macOS 正常显示。"
+          }
+        }
+      }
+    },
+    "Clear notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除通知"
+          }
+        }
+      }
+    },
+    "Close (remove from list)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭(从通知中心移除)"
+          }
+        }
+      }
+    },
+    "Comma-separated app names to ignore" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要忽略的应用名称,以逗号分隔"
+          }
+        }
+      }
+    },
+    "Enable it in Settings → Notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 设置 → 通知 中开启"
+          }
+        }
+      }
+    },
+    "Excluded apps" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除的应用"
+          }
+        }
+      }
+    },
+    "Hide method" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏方式"
+          }
+        }
+      }
+    },
+    "Hide the original banner" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏原始横幅"
+          }
+        }
+      }
+    },
+    "History size" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史保留条数"
+          }
+        }
+      }
+    },
+    "Intercept and replace notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拦截并替代系统通知"
+          }
+        }
+      }
+    },
+    "Move off-screen (keep in list)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移出屏幕(保留在通知中心)"
+          }
+        }
+      }
+    },
+    "No notifications yet" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无通知"
+          }
+        }
+      }
+    },
+    "Notification interception is off" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知拦截未开启"
+          }
+        }
+      }
+    },
+    "Notifications" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
+        }
+      }
+    },
+    "Remove selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除所选"
+          }
+        }
+      }
+    },
+    "Select all" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全选"
+          }
+        }
+      }
+    },
+    "Sneak peek duration" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "速览展示时长"
+          }
+        }
+      }
+    },
+    "The original banner flashes for a fraction of a second before it is hidden — macOS renders banners itself and this cannot be prevented." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原横幅隐藏前会有短暂闪现——横幅由 macOS 渲染,无法完全避免。"
+          }
+        }
+      }
+    },
     "• Bug fixes" : {
       "localizations" : {
         "ar" : {
