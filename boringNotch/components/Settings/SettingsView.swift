@@ -578,7 +578,17 @@ struct HUD: View {
 
                         HStack(spacing: 12) {
                             Button("Request Accessibility") {
-                                // Use unsandboxed XPC helper if available so the system prompt is shown
+                                // The system AX prompt only appears once per
+                                // app identity; with ad-hoc rebuilds the TCC
+                                // record doesn't carry over and later calls
+                                // silently no-op. Opening the Accessibility
+                                // pane always works.
+                                if let settingsURL = URL(
+                                    string:
+                                        "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+                                ) {
+                                    NSWorkspace.shared.open(settingsURL)
+                                }
                                 XPCHelperClient.shared.requestAccessibilityAuthorization()
                             }
                             .buttonStyle(.borderedProminent)
