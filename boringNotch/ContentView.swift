@@ -705,6 +705,15 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func dropEntered(info: DropInfo) {
         isTargeted = true
+        // The delegate's view IS the closed notch bar, so it (not the
+        // background dragDetector, which sits beneath this view and never
+        // receives targeting over the bar) owns the auto-open on file drag.
+        if vm.notchState == .closed, Defaults[.expandedDragDetection] {
+            vm.open()
+            withAnimation(.smooth) {
+                BoringViewCoordinator.shared.currentView = .shelf
+            }
+        }
     }
 
     func dropExited(info: DropInfo) {

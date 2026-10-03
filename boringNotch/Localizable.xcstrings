@@ -5803,7 +5803,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Copy items on drag"
+            "value" : "拖拽时复制项目"
           }
         }
       }
@@ -8914,7 +8914,14 @@
       }
     },
     "Expanded drag detection area" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖拽文件到刘海时自动展开暂存器"
+          }
+        }
+      }
     },
     "Extend hover area" : {
       "localizations" : {
@@ -16526,7 +16533,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Remove from shelf after dragging"
+            "value" : "拖出后从暂存器中移除"
           }
         }
       }
