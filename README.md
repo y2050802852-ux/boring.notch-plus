@@ -30,7 +30,7 @@
 
 ## 📥 安装
 
-1. 前往 [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases) 下载最新的 `boringNotch-1.0.3.dmg`
+1. 前往 [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases) 下载最新的 `boringNotch-1.0.4.dmg`
 2. 打开 DMG，将 **boringNotch.app** 拖入「应用程序」
 3. 首次启动若提示"来自未知开发者"：系统设置 → 隐私与安全性 → **仍要打开**（本项目为 ad-hoc 签名，无开发者账号）
 
