@@ -38,6 +38,16 @@ struct ShelfView: View {
         ShelfStateViewModel.shared.load(providers)
         return true
     }
+
+    private func removeSelectedOrClear() {
+        let selected = selection.selectedItems(in: tvm.items)
+        if selected.isEmpty {
+            tvm.clearAll()
+        } else {
+            for item in selected { ShelfActionService.remove(item) }
+            selection.clear()
+        }
+    }
     
     private func updateQuickLookSelection() {
         guard quickLookService.isQuickLookOpen && !selection.selectedIDs.isEmpty else { return }
@@ -72,10 +82,17 @@ struct ShelfView: View {
             }
             .overlay(alignment: .topTrailing) {
                 if !tvm.isEmpty {
-                    HoverButton(icon: "trash", iconColor: .gray) {
-                        tvm.clearAll()
+                    HStack(spacing: 4) {
+                        HoverButton(icon: "checkmark.circle", iconColor: .gray) {
+                            selection.selectAll(in: tvm.items)
+                        }
+                        .help("Select all")
+
+                        HoverButton(icon: "trash", iconColor: .gray) {
+                            removeSelectedOrClear()
+                        }
+                        .help(selection.hasSelection ? "Remove selected" : "Clear shelf")
                     }
-                    .help("Clear shelf")
                     .padding(4)
                 }
             }
@@ -83,7 +100,28 @@ struct ShelfView: View {
                 transaction.animation = vm.animation
             }
             .contentShape(Rectangle())
-            .onTapGesture { selection.clear() }
+            .background {
+                // Clear selection only when tapping truly empty shelf space.
+                // A tap gesture on the panel itself also fires for item
+                // clicks and instantly wipes the selection.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture { selection.clear() }
+            }
+            .background {
+                // Keyboard paths (work while the notch window is key); the
+                // buttons stay invisible.
+                Button("Select All") {
+                    selection.selectAll(in: tvm.items)
+                }
+                .keyboardShortcut("a", modifiers: .command)
+                .opacity(0)
+                Button("Remove Selected") {
+                    removeSelectedOrClear()
+                }
+                .keyboardShortcut(.delete, modifiers: [])
+                .opacity(0)
+            }
     }
 
     var content: some View {

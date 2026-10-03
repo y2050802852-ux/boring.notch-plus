@@ -210,6 +210,8 @@ final class ShelfItemViewModel: ObservableObject {
     func presentContextMenu(event: NSEvent, in view: NSView) {
         ensureContextMenuSelection()
         let menu = NSMenu()
+        addMenuItem(title: "Select All")
+        menu.addItem(NSMenuItem.separator())
 
         func addMenuItem(title: String) {
             let mi = NSMenuItem(title: title, action: nil, keyEquivalent: "")
@@ -539,6 +541,9 @@ final class ShelfItemViewModel: ObservableObject {
                         }
                     }
                 }
+
+            case "Select All":
+                ShelfSelectionModel.shared.selectAll(in: ShelfStateViewModel.shared.items)
 
             case "Remove":
                 let selected = ShelfSelectionModel.shared.selectedItems(in: ShelfStateViewModel.shared.items)
