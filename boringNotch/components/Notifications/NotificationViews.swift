@@ -11,6 +11,71 @@
 import SwiftUI
 import Defaults
 
+/// Resolves the real app icon for an intercepted notification. Notification
+/// Center banners only expose the app's display name over the Accessibility
+/// API, so the icon is matched by name: running apps first, then a cached
+/// scan of installed app bundles. Unknown apps fall back to the bell
+/// placeholder in the views.
+@MainActor
+enum NotificationAppIcon {
+    private static var cache: [String: NSImage] = [:]
+    private static var installedAppsByName: [String: String]?
+
+    static func icon(for appName: String) -> NSImage? {
+        let name = appName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, name != "通知" else { return nil }
+        if let cached = cache[name] { return cached }
+
+        let icon = runningAppIcon(for: name) ?? installedAppIcon(for: name)
+        if let icon { cache[name] = icon }
+        return icon
+    }
+
+    private static func runningAppIcon(for name: String) -> NSImage? {
+        NSWorkspace.shared.runningApplications.first {
+            $0.localizedName?.caseInsensitiveCompare(name) == .orderedSame
+        }?.icon
+    }
+
+    private static func installedAppIcon(for name: String) -> NSImage? {
+        if installedAppsByName == nil { installedAppsByName = scanInstalledApps() }
+        guard let path = installedAppsByName?[name.lowercased()] else { return nil }
+        return NSWorkspace.shared.icon(forFile: path)
+    }
+
+    private static func scanInstalledApps() -> [String: String] {
+        var map: [String: String] = [:]
+        let roots = [
+            "/Applications",
+            "/Applications/Utilities",
+            "/System/Applications",
+            "/System/Applications/Utilities",
+            "/System/Library/CoreServices",
+            NSString("~/Applications").expandingTildeInPath,
+        ]
+        for root in roots {
+            let items = (try? FileManager.default.contentsOfDirectory(atPath: root)) ?? []
+            for item in items where item.hasSuffix(".app") {
+                register(path: root + "/" + item, into: &map)
+            }
+        }
+        return map
+    }
+
+    private static func register(path: String, into map: inout [String: String]) {
+        // displayName keeps the .app suffix; strip it so keys are plain names.
+        let display = FileManager.default.displayName(atPath: path)
+        let trimmed = display.hasSuffix(".app") ? String(display.dropLast(4)) : display
+        map[trimmed.lowercased()] = path
+        guard let bundle = Bundle(url: URL(fileURLWithPath: path)) else { return }
+        for key in [kCFBundleNameKey as String, "CFBundleDisplayName"] {
+            let name = bundle.localizedInfoDictionary?[key] as? String
+                ?? bundle.infoDictionary?[key] as? String
+            if let name { map[name.lowercased()] = path }
+        }
+    }
+}
+
 /// The row that appears BELOW the notch bar while a notification is being
 /// transcribed — the notch expands downward to reveal it.
 struct NotificationSneakPeekView: View {
@@ -46,11 +111,8 @@ struct NotificationSneakPeekView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Image(systemName: "bell.fill")
-                .font(.system(size: 13))
-                .foregroundStyle(.white)
+            appIcon
                 .frame(width: 26, height: 26)
-                .background(Circle().fill(Color.white.opacity(0.12)))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(record.appName)
@@ -77,6 +139,22 @@ struct NotificationSneakPeekView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+
+    /// The sending app's real icon; the bell placeholder when the app name
+    /// can't be matched to an installed/running app.
+    @ViewBuilder
+    private var appIcon: some View {
+        if let icon = NotificationAppIcon.icon(for: record.appName) {
+            Image(nsImage: icon)
+                .resizable()
+                .interpolation(.high)
+        } else {
+            Image(systemName: "bell.fill")
+                .font(.system(size: 13))
+                .foregroundStyle(.white)
+                .background(Circle().fill(Color.white.opacity(0.12)))
+        }
     }
 }
 
@@ -141,9 +219,7 @@ struct NotificationListView: View {
                     VStack(spacing: 6) {
                         ForEach(interceptor.recentNotifications) { record in
                             HStack(alignment: .top, spacing: 10) {
-                                Image(systemName: "bell.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(.gray)
+                                rowAppIcon(for: record)
                                     .frame(width: 22)
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack {
@@ -181,6 +257,22 @@ struct NotificationListView: View {
         // Scrolling the history must never feed the swipe-up-to-close gesture.
         .onHover { hovering in
             vm.isHoveringScrollableContent = hovering
+        }
+    }
+
+    /// The sending app's real icon for a history row; bell placeholder when
+    /// unmatched.
+    @ViewBuilder
+    private func rowAppIcon(for record: NotificationRecord) -> some View {
+        if let icon = NotificationAppIcon.icon(for: record.appName) {
+            Image(nsImage: icon)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 20, height: 20)
+        } else {
+            Image(systemName: "bell.fill")
+                .font(.system(size: 12))
+                .foregroundStyle(.gray)
         }
     }
 
