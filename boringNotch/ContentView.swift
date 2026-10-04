@@ -74,10 +74,6 @@ struct ContentView: View {
         {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && notificationInterceptor.displayedNotification != nil && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
             && PomodoroManager.shared.isActive && !vm.hideOnClosed
         {
             // Left slot stays identical to the music/idle states; only the
@@ -134,7 +130,6 @@ struct ContentView: View {
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
                     )
-                    .padding(.leading, 0)
                     .padding(
                         .bottom,
                         vm.effectiveClosedNotchHeight == 0 ? 10 : 0
@@ -322,10 +317,6 @@ struct ContentView: View {
                       } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
                           InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
                               .transition(.opacity)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed
-                          && notificationInterceptor.displayedNotification != nil && !vm.hideOnClosed {
-                          NotificationSneakPeekView(record: notificationInterceptor.displayedNotification!)
-                              .transition(.opacity)
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && pomodoroManager.isActive && !vm.hideOnClosed {
                           PomodoroLiveActivity(albumArtNamespace: albumArtNamespace)
                               .transition(.opacity)
@@ -341,6 +332,17 @@ struct ContentView: View {
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
+
+                      // Notification replacement: the notch EXPANDS DOWNWARD
+                      // below the bar to reveal the intercepted notification
+                      // (like the volume sneak-peek, but with room for the
+                      // title and body — nothing hides behind the camera).
+                      if !coordinator.expandingView.show, vm.notchState == .closed,
+                         let record = notificationInterceptor.displayedNotification, !vm.hideOnClosed {
+                          NotificationSneakPeekView(record: record)
+                              .padding(.top, 6)
+                              .transition(.move(edge: .top).combined(with: .opacity))
+                      }
 
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {

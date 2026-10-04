@@ -147,7 +147,7 @@ final class NotificationInterceptor: ObservableObject {
 
         // Persistent poll while enabled — the base mechanism. The observer,
         // when usable, accelerates the first response via handleAXEvent.
-        scanTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
+        scanTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.scanTick()
             }
@@ -306,10 +306,14 @@ final class NotificationInterceptor: ObservableObject {
         if recentNotifications.count > limit {
             recentNotifications.removeLast(recentNotifications.count - limit)
         }
-        displayedNotification = record
+        withAnimation(.smooth(duration: 0.3)) {
+            displayedNotification = record
+        }
         hideWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
-            self?.displayedNotification = nil
+            withAnimation(.smooth(duration: 0.3)) {
+                self?.displayedNotification = nil
+            }
         }
         hideWorkItem = work
         DispatchQueue.main.asyncAfter(

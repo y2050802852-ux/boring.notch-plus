@@ -2,63 +2,59 @@
 //  NotificationViews.swift
 //  boringNotch
 //
-//  1.1.0 notification replacement UI: the closed-notch sneak peek and the
-//  recent-notifications list shown in the open notch.
+//  1.1.0 notification replacement UI: the notch EXPANDS DOWNWARD (like the
+//  volume sneak-peek, but taller) to reveal the notification content — the
+//  hardware notch itself stays untouched, so nothing is hidden behind the
+//  camera housing.
 //
 
 import SwiftUI
 import Defaults
 
+/// The row that appears BELOW the notch bar while a notification is being
+/// transcribed — the notch expands downward to reveal it.
 struct NotificationSneakPeekView: View {
-    @EnvironmentObject var vm: BoringViewModel
     let record: NotificationRecord
 
-    private var sideSize: CGFloat {
-        max(0, vm.effectiveClosedNotchHeight - 12)
-    }
-
-    private var sideSlot: CGFloat {
-        max(0, vm.effectiveClosedNotchHeight - 12) + 10
-    }
-
     var body: some View {
-        HStack(spacing: 0) {
-            // Left slot: bell icon centered in the black extension
+        HStack(spacing: 10) {
             Image(systemName: "bell.fill")
-                .font(.system(size: min(14, max(10, sideSize * 0.5))))
+                .font(.system(size: 13))
                 .foregroundStyle(.white)
-                .frame(width: sideSize, height: sideSize)
-                .frame(width: sideSlot)
+                .frame(width: 26, height: 26)
+                .background(Circle().fill(Color.white.opacity(0.12)))
 
-            // Filler: app name / title / body (covers the hardware notch)
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(record.appName)
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(.gray)
                     .lineLimit(1)
                 Text(record.title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
-                Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.gray)
-                    .lineLimit(1)
+                if !record.body.isEmpty {
+                    Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.gray)
+                        .lineLimit(2)
+                }
             }
-            .frame(width: max(0, vm.closedNotchSize.width), alignment: .leading)
-            .padding(.horizontal, 2)
 
-            // Right slot: empty for symmetry
-            Color.clear
-                .frame(width: sideSlot)
+            Spacer(minLength: 0)
+
+            Text(record.date, style: .time)
+                .font(.system(size: 9))
+                .foregroundStyle(.gray)
         }
-        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }
 
+/// The「通知」tab in the open notch: the recent-notification history.
 struct NotificationListView: View {
     @ObservedObject private var interceptor = NotificationInterceptor.shared
-    @ObservedObject private var coordinator = BoringViewCoordinator.shared
 
     var body: some View {
         VStack(spacing: 10) {
