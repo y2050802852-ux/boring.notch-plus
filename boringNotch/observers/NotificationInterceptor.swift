@@ -40,7 +40,6 @@ final class NotificationInterceptor: ObservableObject {
     private var seenBannerKeys: [String: Date] = [:]
     private var hideWorkItem: DispatchWorkItem?
     private var running = false
-    private var emptyTicks = 0
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -85,16 +84,21 @@ final class NotificationInterceptor: ObservableObject {
     }
 
     private func start() {
+        Self.debugLog("start: called (running=\(running))")
         guard !running else { return }
         guard let nc = NSWorkspace.shared.runningApplications.first(where: {
             $0.bundleIdentifier == "com.apple.notificationcenterui"
         }), nc.processIdentifier != 0 else {
-            NSLog("📢 NotificationInterceptor: NotificationCenter process not found")
+            Self.debugLog("start: NotificationCenter process not found")
             return
         }
+        Self.debugLog("start: NC pid=\(nc.processIdentifier)")
 
         appElement = AXUIElementCreateApplication(nc.processIdentifier)
-        guard let appElement else { return }
+        guard let appElement else {
+            Self.debugLog("start: appElement nil")
+            return
+        }
 
         var obs: AXObserver?
         let refcon = Unmanaged.passUnretained(self).toOpaque()
@@ -107,27 +111,31 @@ final class NotificationInterceptor: ObservableObject {
                 interceptor.handleAXEvent(element: elementCopy, notification: name)
             }
         }, &obs)
-        guard createResult == .success, let observer = obs else {
-            NSLog("📢 NotificationInterceptor: AXObserverCreate failed (\(createResult.rawValue))")
-            return
+        if createResult == .success, let observer = obs {
+            CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .defaultMode)
+            let addResult = AXObserverAddNotification(
+                observer,
+                appElement,
+                kAXWindowCreatedNotification as CFString,
+                refcon
+            )
+            Self.debugLog("start: AXObserver ready (add err=\(addResult.rawValue))")
+            self.observer = observer
+        } else {
+            // The observer is only an accelerator; polling alone still works
+            // (and may be the only option from inside the sandbox).
+            Self.debugLog("start: AXObserver unavailable (err=\(createResult.rawValue)), poll-only")
         }
 
-        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .defaultMode)
-        let addResult = AXObserverAddNotification(
-            observer,
-            appElement,
-            kAXWindowCreatedNotification as CFString,
-            refcon
-        )
-        guard addResult == .success else {
-            NSLog("📢 NotificationInterceptor: AXObserverAddNotification failed (\(addResult.rawValue))")
-            return
+        // Persistent poll while enabled — the base mechanism. The observer,
+        // when usable, accelerates the first response via handleAXEvent.
+        scanTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.scanTick()
+            }
         }
-
-        self.observer = observer
         running = true
         Self.debugLog("start: RUNNING (pid=\(nc.processIdentifier))")
-        NSLog("📢 NotificationInterceptor: started")
     }
 
     func stop() {
@@ -148,22 +156,10 @@ final class NotificationInterceptor: ObservableObject {
     // MARK: - AX events
 
     private func handleAXEvent(element: AXUIElement, notification: String) {
-        Self.debugLog("AX event: \(notification)")
         guard running, Defaults[.notificationInterceptor] else { return }
-        // NOTE: the AXWindowCreated event fires before the window's
-        // subrole/title are populated (they read AXUnknown/"" at callback
-        // time) — filtering here would drop every event. Just make sure the
-        // scan is running; the tick re-checks for the banner host window and
-        // self-terminates if no banner shows up.
+        // Event-driven fast path: scan the delivered element right away (the
+        // poll tick is the slower safety net).
         scanBanners(in: element)
-        if scanTimer == nil {
-            emptyTicks = 0
-            scanTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
-                Task { @MainActor in
-                    self?.scanTick()
-                }
-            }
-        }
     }
 
     private func findBannerHost() -> AXUIElement? {
@@ -179,22 +175,11 @@ final class NotificationInterceptor: ObservableObject {
 
     private func scanTick() {
         guard running, Defaults[.notificationInterceptor] else {
-            stopScan()
+            stop()
             return
         }
-        guard let host = findBannerHost() else {
-            emptyTicks += 1
-            if emptyTicks > 15 { stopScan() }
-            return
-        }
-        emptyTicks = 0
+        guard let host = findBannerHost() else { return }
         scanBanners(in: host)
-    }
-
-    private func stopScan() {
-        scanTimer?.invalidate()
-        scanTimer = nil
-        seenBannerKeys.removeAll()
     }
 
     private func scanBanners(in window: AXUIElement) {
