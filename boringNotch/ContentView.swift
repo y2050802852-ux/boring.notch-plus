@@ -361,7 +361,16 @@ struct ContentView: View {
                       // below the bar to reveal the intercepted notification
                       // (like the volume sneak-peek, but with room for the
                       // title and body — nothing hides behind the camera).
-                      if !coordinator.expandingView.show, vm.notchState == .closed,
+                      // System alerts (alarm/timer, rendered outside
+                      // Notification Center) take priority over regular
+                      // notifications — they carry action buttons.
+                      if !coordinator.expandingView.show, vm.notchState == .closed, !vm.hideOnClosed,
+                         let alert = notificationInterceptor.displayedAlert {
+                          AlertSneakPeekView(alert: alert)
+                              .frame(width: max(notificationRowFloor, 460), alignment: .leading)
+                              .padding(.top, 6)
+                              .transition(.move(edge: .top).combined(with: .opacity))
+                      } else if !coordinator.expandingView.show, vm.notchState == .closed,
                          let record = notificationInterceptor.displayedNotification, !vm.hideOnClosed {
                           NotificationSneakPeekView(record: record)
                               .frame(width: notificationRowWidth, alignment: .leading)
