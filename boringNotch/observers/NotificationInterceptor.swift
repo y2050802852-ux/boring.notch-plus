@@ -33,16 +33,19 @@ struct AlertButton {
     let element: AXUIElement
 }
 
-/// An intercepted UserNotificationCenter alert (alarm/timer/legacy popups —
-/// these never go through Notification Center and are invisible to banner
-/// interception). The notch shows the alert's own buttons; pressing one
-/// performs the real AXPress on the (hidden) system alert.
+/// An intercepted system alert (alarm/timer/legacy popups). The notch shows
+/// the alert's own buttons; pressing one performs the real AXPress on the
+/// (hidden) system alert. `window` is the hideable window; `trackElement`
+/// identifies the alert itself for liveness checks (they differ for alerts
+/// living inside the shared Notification Center host window).
 struct PendingAlert: Identifiable {
     let id = UUID()
     let appName: String
     let title: String
     let message: String
     let window: AXUIElement
+    let trackElement: AXUIElement
+    let isHostAlert: Bool
     let originalPosition: CGPoint
     var buttons: [AlertButton]
 }
@@ -267,6 +270,112 @@ final class NotificationInterceptor: ObservableObject {
                 display(record)
             }
         }
+
+        // Alarm/timer alerts live inside this same Notification Center host
+        // window but are NOT AXNotificationCenterBanner elements — scan for
+        // them when no banner is present.
+        if banners.isEmpty {
+            scanHostAlert(in: window)
+        }
+    }
+
+    // MARK: - Alarm alerts inside the Notification Center host window
+
+    /// Alarm/timer alerts share the banner host window; find alert-shaped
+    /// containers (a button's top ancestor below the host) and intercept the
+    /// alarm-like ones.
+    private func scanHostAlert(in host: AXUIElement) {
+        let buttonEls = collectRoleElements(host, role: "AXButton", depth: 0)
+
+        var containers: [AXUIElement] = []
+        var seenContainerHashes: Set<CFHashCode> = []
+        for button in buttonEls {
+            guard let container = topAncestorBelow(button, root: host) else { continue }
+            let hash = CFHash(container)
+            if !seenContainerHashes.contains(hash) {
+                seenContainerHashes.insert(hash)
+                containers.append(container)
+            }
+        }
+
+        for container in containers {
+            let hash = CFHash(container)
+            // Already showing this exact alert — it stays ringing for minutes.
+            if let current = displayedAlert, CFHash(current.trackElement) == hash { return }
+            if let seen = uncSeenWindows[hash], Date().timeIntervalSince(seen) < 600 { continue }
+            uncSeenWindows[hash] = Date()
+
+            var texts: [String] = []
+            collectTexts(container, into: &texts, depth: 0)
+            let cbtns = collectRoleElements(container, role: "AXButton", depth: 0)
+            let buttons: [AlertButton] = cbtns.compactMap { el in
+                guard let label = axStr(el, kAXTitleAttribute) ?? axStr(el, kAXDescriptionAttribute),
+                      !label.isEmpty else { return nil }
+                return AlertButton(label: label, element: el)
+            }
+            guard !texts.isEmpty, !buttons.isEmpty else { continue }
+
+            Self.debugLog(
+                "NC host alert candidate: texts=\(texts) buttons=\(buttons.map(\.label))")
+            guard Self.isInterceptableAlert(texts: texts, buttons: buttons) else {
+                Self.debugLog("NC host alert: skipped (not an alarm/timer alert)")
+                continue
+            }
+
+            let original = axPoint(host, kAXPositionAttribute) ?? .zero
+            if Defaults[.notificationHideOriginal] && !notchWouldBeHidden() {
+                setWindowPosition(host, CGPoint(x: -2000, y: -2000))
+                uncHidden[CFHash(host)] = (host, original)
+                Self.debugLog("NC host alert: host hidden off-screen (original=\(original))")
+            }
+
+            let title = texts[0]
+            let message = texts.dropFirst().joined(separator: " — ")
+            let appName = "时钟"
+            recordInHistory(
+                NotificationRecord(
+                    appName: appName, title: title, subtitle: "", body: message, date: Date()))
+            if Self.isMuted(appName) {
+                Self.debugLog("NC host alert: app muted, history only")
+                continue
+            }
+            Self.debugLog("NC host alert: INTERCEPTED -> notch")
+            withAnimation(.smooth(duration: 0.3)) {
+                displayedAlert = PendingAlert(
+                    appName: appName, title: title, message: message,
+                    window: host, trackElement: container, isHostAlert: true,
+                    originalPosition: original, buttons: buttons)
+            }
+        }
+
+        // The alert element vanished (stopped/snoozed/expired): clear the
+        // notch display and give the host window its position back.
+        if let alert = displayedAlert, alert.isHostAlert {
+            let stillThere = containers.contains { CFHash($0) == CFHash(alert.trackElement) }
+            if !stillThere {
+                displayedAlert = nil
+                if let entry = uncHidden.removeValue(forKey: CFHash(alert.window)) {
+                    setWindowPosition(entry.window, entry.original)
+                }
+            }
+        }
+    }
+
+    private func topAncestorBelow(_ el: AXUIElement, root: AXUIElement) -> AXUIElement? {
+        var current = el
+        for _ in 0..<10 {
+            guard let parent = axParent(current) else { return nil }
+            if CFHash(parent) == CFHash(root) { return current }
+            current = parent
+        }
+        return nil
+    }
+
+    private func axParent(_ el: AXUIElement) -> AXUIElement? {
+        var v: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(el, kAXParentAttribute as CFString, &v) == .success,
+              let parent = v else { return nil }
+        return (parent as! AXUIElement)
     }
 
     private func hideBannerWindowIfNeeded(_ window: AXUIElement) {
@@ -410,7 +519,8 @@ final class NotificationInterceptor: ObservableObject {
         withAnimation(.smooth(duration: 0.3)) {
             displayedAlert = PendingAlert(
                 appName: appName, title: title, message: message,
-                window: window, originalPosition: original, buttons: buttons)
+                window: window, trackElement: window, isHostAlert: false,
+                originalPosition: original, buttons: buttons)
         }
     }
 
