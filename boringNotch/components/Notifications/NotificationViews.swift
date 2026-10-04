@@ -16,6 +16,34 @@ import Defaults
 struct NotificationSneakPeekView: View {
     let record: NotificationRecord
 
+    /// Long notifications widen the bar up to this width, then wrap the body
+    /// to a second line instead of stretching across the whole notch window.
+    static let maxWidth: CGFloat = 480
+
+    /// Single-line width of the widest text the row renders (title at 12pt
+    /// semibold vs body at 10pt regular), measured with the same system fonts
+    /// the row uses so CJK and Latin text both size correctly.
+    static func textWidth(for record: NotificationRecord) -> CGFloat {
+        func measured(_ text: String, size: CGFloat, weight: NSFont.Weight) -> CGFloat {
+            (text as NSString).size(
+                withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]
+            ).width
+        }
+        let bodyText = record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)"
+        return max(
+            measured(record.title, size: 12, weight: .semibold),
+            measured(bodyText, size: 10, weight: .regular)
+        )
+    }
+
+    /// Row width for a record: hugs short notifications at `floor` (the base
+    /// bar width) and grows with the text up to `maxWidth`.
+    static func contentWidth(for record: NotificationRecord, floor: CGFloat) -> CGFloat {
+        // icon 26 + spacing 10 + time ≈ 42 + horizontal padding 28 + slack 6
+        let natural = textWidth(for: record) + 112
+        return min(max(natural, floor), max(floor, maxWidth))
+    }
+
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "bell.fill")

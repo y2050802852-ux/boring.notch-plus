@@ -98,6 +98,26 @@ struct ContentView: View {
         max(0, vm.effectiveClosedNotchHeight - 12) + 10
     }
 
+    /// Floor for the notification sneak-peek row: never narrower than the bar
+    /// shown above it. Music/pomodoro/weather widen the closed bar beyond the
+    /// hardware notch; otherwise the baseline idle bar (the empty-state bar
+    /// uses a 20pt inset) keeps short notifications at notch size.
+    var notificationRowFloor: CGFloat {
+        guard computedChinWidth > vm.closedNotchSize.width else {
+            return vm.closedNotchSize.width - 20
+        }
+        return computedChinWidth
+    }
+
+    /// Dynamic sneak-peek row width: base bar size for short notifications,
+    /// growing with the measured text up to NotificationSneakPeekView.maxWidth.
+    var notificationRowWidth: CGFloat {
+        guard let record = notificationInterceptor.displayedNotification else {
+            return notificationRowFloor
+        }
+        return NotificationSneakPeekView.contentWidth(for: record, floor: notificationRowFloor)
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -144,6 +164,7 @@ struct ContentView: View {
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
                             .animation(.smooth, value: gestureProgress)
+                            .animation(.smooth, value: notificationRowWidth)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
@@ -340,6 +361,7 @@ struct ContentView: View {
                       if !coordinator.expandingView.show, vm.notchState == .closed,
                          let record = notificationInterceptor.displayedNotification, !vm.hideOnClosed {
                           NotificationSneakPeekView(record: record)
+                              .frame(width: notificationRowWidth, alignment: .leading)
                               .padding(.top, 6)
                               .transition(.move(edge: .top).combined(with: .opacity))
                       }
