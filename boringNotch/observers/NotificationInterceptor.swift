@@ -40,6 +40,8 @@ final class NotificationInterceptor: ObservableObject {
     private var seenBannerKeys: [String: Date] = [:]
     private var hideWorkItem: DispatchWorkItem?
     private var running = false
+    private var hostPresent = false
+    private var retryTimer: Timer?
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -52,6 +54,17 @@ final class NotificationInterceptor: ObservableObject {
             }
         }
         updateRunning()
+        // Ad-hoc builds lose the accessibility grant on every reinstall;
+        // poll for it so the interceptor arms itself automatically (within
+        // 5s) as soon as the user re-grants.
+        if retryTimer == nil {
+            retryTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+                Task { @MainActor in
+                    guard let self, !self.running else { return }
+                    self.updateRunning()
+                }
+            }
+        }
     }
 
     /// File-based trace: NSLog is not reliably visible via `log show` in this
@@ -178,7 +191,17 @@ final class NotificationInterceptor: ObservableObject {
             stop()
             return
         }
-        guard let host = findBannerHost() else { return }
+        guard let host = findBannerHost() else {
+            if hostPresent {
+                hostPresent = false
+                Self.debugLog("tick: banner host gone")
+            }
+            return
+        }
+        if !hostPresent {
+            hostPresent = true
+            Self.debugLog("tick: banner host APPEARED")
+        }
         scanBanners(in: host)
     }
 
