@@ -87,7 +87,12 @@ final class NotificationInterceptor: ObservableObject {
         let toggle = Defaults[.notificationInterceptor]
         let trusted = AXIsProcessTrusted()
         accessibilityGranted = trusted
-        Self.debugLog("updateRunning toggle=\(toggle) axTrusted=\(trusted) running=\(running)")
+        let stdDirect = UserDefaults.standard.bool(forKey: "notificationInterceptor")
+        Self.debugLog(
+            "updateRunning bundle=\(Bundle.main.bundleIdentifier) uid=\(getuid()) "
+                + "toggle=\(toggle) stdDirect=\(stdDirect) axTrusted=\(trusted) running=\(running) "
+                + "tmpDir=\(FileManager.default.temporaryDirectory.path)"
+        )
         let shouldRun = toggle && trusted
         if shouldRun && !running {
             start()

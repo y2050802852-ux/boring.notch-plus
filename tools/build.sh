@@ -21,5 +21,14 @@ xcodebuild \
   "$@"
 
 APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/boringNotch.app 2>/dev/null | head -1)
+
+# Sign with the stable development identity when available. TCC grants
+# (accessibility, notifications) attach to the code-signing identity, so a
+# stable identity keeps them valid across rebuilds — ad-hoc builds lose
+# them every time.
+if security find-identity -v -p codesigning 2>/dev/null | grep -q "boringNotch Dev"; then
+  codesign --force --sign "boringNotch Dev" "$APP" >/dev/null 2>&1 && echo "Signed: boringNotch Dev"
+fi
+
 echo
 echo "Built: $APP"
