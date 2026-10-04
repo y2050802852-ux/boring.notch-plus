@@ -638,19 +638,23 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
+            // While a system alert (alarm) waits in the sneak peek the notch
+            // must not hover-open — it would swallow the action buttons.
             guard vm.notchState == .closed,
                   !coordinator.sneakPeek.show,
+                  notificationInterceptor.displayedAlert == nil,
                   Defaults[.openNotchOnHover] else { return }
-            
+
             hoverTask = Task {
                 try? await Task.sleep(for: .seconds(Defaults[.minimumHoverDuration]))
                 guard !Task.isCancelled else { return }
-                
+
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.sneakPeek.show else { return }
-                    
+                          !self.coordinator.sneakPeek.show,
+                          self.notificationInterceptor.displayedAlert == nil else { return }
+
                     self.doOpen()
                 }
             }

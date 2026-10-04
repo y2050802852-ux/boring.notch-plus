@@ -381,6 +381,14 @@ final class NotificationInterceptor: ObservableObject {
             }
         }
 
+        // Only alarm/timer-style alerts are hijacked. Other
+        // UserNotificationCenter windows are consent/security dialogs
+        // (calendar access, etc.) that must stay visible and interactive.
+        guard Self.isInterceptableAlert(texts: texts, buttons: buttons) else {
+            Self.debugLog("UNC alert: skipped (not an alarm/timer alert)")
+            return
+        }
+
         let original = axPoint(window, kAXPositionAttribute) ?? .zero
         if Defaults[.notificationHideOriginal] && !notchWouldBeHidden() {
             setWindowPosition(window, CGPoint(x: -2000, y: -2000))
@@ -404,6 +412,23 @@ final class NotificationInterceptor: ObservableObject {
                 appName: appName, title: title, message: message,
                 window: window, originalPosition: original, buttons: buttons)
         }
+    }
+
+    /// Alarm/timer alerts are recognized by their texts or button labels.
+    /// Consent dialogs (TCC prompts: 帮助/不允许/允许…) are excluded even
+    /// harder — they must never be hidden or auto-answered.
+    private static let alarmAlertKeywords = ["闹钟", "计时器", "alarm", "timer", "snooze", "稍后提醒"]
+    private static let consentDialogKeywords = ["不允许", "don't allow", "帮助", "help"]
+
+    static func isInterceptableAlert(texts: [String], buttons: [AlertButton]) -> Bool {
+        let labels = buttons.map { $0.label.lowercased() }
+        if labels.contains(where: { label in
+            consentDialogKeywords.contains { label.contains($0) }
+        }) {
+            return false
+        }
+        let haystack = (texts + buttons.map(\.label)).joined(separator: " ").lowercased()
+        return alarmAlertKeywords.contains { haystack.contains($0) }
     }
 
     /// Press one of the intercepted alert's real buttons from the notch.
