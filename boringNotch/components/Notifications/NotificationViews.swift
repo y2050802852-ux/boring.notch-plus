@@ -82,7 +82,9 @@ struct NotificationSneakPeekView: View {
 
 /// The「通知」tab in the open notch: the recent-notification history.
 struct NotificationListView: View {
+    @EnvironmentObject private var vm: BoringViewModel
     @ObservedObject private var interceptor = NotificationInterceptor.shared
+    @Default(.notificationMutedApps) private var mutedApps: [String]
 
     var body: some View {
         VStack(spacing: 10) {
@@ -162,6 +164,7 @@ struct NotificationListView: View {
                                         .foregroundStyle(.gray)
                                         .lineLimit(2)
                                 }
+                                muteButton(for: record)
                             }
                             .padding(8)
                             .background(
@@ -175,5 +178,30 @@ struct NotificationListView: View {
             }
         }
         .padding(.horizontal, 6)
+        // Scrolling the history must never feed the swipe-up-to-close gesture.
+        .onHover { hovering in
+            vm.isHoveringScrollableContent = hovering
+        }
+    }
+
+    /// One-click mute: hides future sneak peeks from this app while keeping
+    /// them in the history. Tapping again unmutes.
+    private func muteButton(for record: NotificationRecord) -> some View {
+        let isMuted = mutedApps.contains(record.appName)
+        return Button {
+            if isMuted {
+                mutedApps.removeAll { $0 == record.appName }
+            } else {
+                mutedApps.append(record.appName)
+            }
+        } label: {
+            Image(systemName: isMuted ? "bell.slash.fill" : "bell.slash")
+                .font(.system(size: 11))
+                .foregroundStyle(isMuted ? Color.white : Color(white: 0.45))
+                .frame(width: 22, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(isMuted ? "Unmute this app" : "Mute this app")
     }
 }

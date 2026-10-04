@@ -662,7 +662,8 @@ struct NotificationSettings: View {
     @Default(.notificationHideOffScreen) var notificationHideOffScreen: Bool
     @Default(.notificationHistoryLimit) var notificationHistoryLimit: Int
     @Default(.notificationDisplayDuration) var notificationDisplayDuration: Double
-    @Default(.notificationBlockedApps) var notificationBlockedApps: String
+    @Default(.notificationMutedApps) var notificationMutedApps: [String]
+    @State private var newMutedApp: String = ""
     @State private var accessibilityAuthorized = false
 
     var body: some View {
@@ -732,11 +733,35 @@ struct NotificationSettings: View {
             }
 
             Section {
-                TextField("Comma-separated app names to ignore", text: $notificationBlockedApps)
+                HStack {
+                    TextField("Add an app name", text: $newMutedApp)
+                        .onSubmit(addMutedApp)
+                    Button("Add", action: addMutedApp)
+                        .disabled(
+                            newMutedApp.trimmingCharacters(in: .whitespaces).isEmpty
+                                || notificationMutedApps.contains(newMutedApp.trimmingCharacters(in: .whitespaces))
+                        )
+                }
+                ForEach(notificationMutedApps, id: \.self) { app in
+                    HStack {
+                        Image(systemName: "bell.slash")
+                            .foregroundStyle(.secondary)
+                        Text(app)
+                        Spacer()
+                        Button {
+                            notificationMutedApps.removeAll { $0 == app }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Remove")
+                    }
+                }
             } header: {
-                Text("Excluded apps")
+                Text("Muted apps")
             } footer: {
-                Text("Banners from these apps are left untouched and shown by macOS normally.")
+                Text("Notifications from these apps are still intercepted and hidden, but never pop up in the notch — they only appear in the notification history. Tap the bell-slash on a history row to mute an app directly.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -751,6 +776,13 @@ struct NotificationSettings: View {
                 accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
             }
         }
+    }
+
+    private func addMutedApp() {
+        let name = newMutedApp.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, !notificationMutedApps.contains(name) else { return }
+        notificationMutedApps.append(name)
+        newMutedApp = ""
     }
 }
 

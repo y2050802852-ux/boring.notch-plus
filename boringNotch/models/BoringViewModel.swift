@@ -29,7 +29,10 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
-    @Published var isHoveringCalendar: Bool = false
+    /// True while the pointer is over scrollable tab content (calendar,
+    /// notification history, shelf). Scrolling there must never feed the
+    /// swipe-up-to-close gesture.
+    @Published var isHoveringScrollableContent: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
 
     @Published var screenUUID: String?

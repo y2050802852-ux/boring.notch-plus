@@ -179,7 +179,9 @@ extension Defaults.Keys {
     static let notificationHideOffScreen = Key<Bool>("notificationHideOffScreen", default: true)
     static let notificationHistoryLimit = Key<Int>("notificationHistoryLimit", default: 20)
     static let notificationDisplayDuration = Key<Double>("notificationDisplayDuration", default: 4)
-    static let notificationBlockedApps = Key<String>("notificationBlockedApps", default: "")
+    /// Apps whose notifications are intercepted and hidden but never pop the
+    /// sneak peek — they are only recorded in the notification history.
+    static let notificationMutedApps = Key<[String]>("notificationMutedApps", default: [])
     
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)

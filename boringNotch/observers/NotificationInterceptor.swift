@@ -229,7 +229,12 @@ final class NotificationInterceptor: ObservableObject {
                 hideBannerWindowIfNeeded(window)
                 hostHidden = true
             }
-            display(record)
+            if Self.isMuted(record.appName) {
+                Self.debugLog("muted app: history only, no sneak peek")
+                recordInHistory(record)
+            } else {
+                display(record)
+            }
         }
     }
 
@@ -299,12 +304,22 @@ final class NotificationInterceptor: ObservableObject {
 
     // MARK: - Display
 
-    private func display(_ record: NotificationRecord) {
+    /// Muted apps never pop the sneak peek; their notifications are only
+    /// recorded in the history list.
+    static func isMuted(_ appName: String) -> Bool {
+        Defaults[.notificationMutedApps].contains(appName)
+    }
+
+    private func recordInHistory(_ record: NotificationRecord) {
         recentNotifications.insert(record, at: 0)
         let limit = max(5, Defaults[.notificationHistoryLimit])
         if recentNotifications.count > limit {
             recentNotifications.removeLast(recentNotifications.count - limit)
         }
+    }
+
+    private func display(_ record: NotificationRecord) {
+        recordInHistory(record)
         withAnimation(.smooth(duration: 0.3)) {
             displayedNotification = record
         }
