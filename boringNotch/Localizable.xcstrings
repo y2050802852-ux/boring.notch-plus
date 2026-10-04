@@ -1011,6 +1011,16 @@
         }
       }
     },
+    "Accessibility permission required" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要辅助功能权限"
+          }
+        }
+      }
+    },
     "Banners from apps are transcribed into the notch and hidden; the Notification Center list keeps every notification. Requires Accessibility (shared with HUD replacement)." : {
       "localizations" : {
         "zh-Hans" : {
@@ -1157,6 +1167,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开系统设置"
           }
         }
       }

@@ -82,16 +82,31 @@ struct NotificationListView: View {
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.white, .gray)
                         .imageScale(.large)
-                    Text(Defaults[.notificationInterceptor]
-                         ? "No notifications yet"
-                         : "Notification interception is off")
-                        .foregroundStyle(.gray)
-                        .font(.system(.body, design: .rounded))
-                        .fontWeight(.medium)
                     if !Defaults[.notificationInterceptor] {
+                        Text("Notification interception is off")
+                            .foregroundStyle(.gray)
+                            .font(.system(.body, design: .rounded))
+                            .fontWeight(.medium)
                         Text("Enable it in Settings → Notifications")
                             .foregroundStyle(.secondary)
                             .font(.caption)
+                    } else if !interceptor.accessibilityGranted {
+                        Text("Accessibility permission required")
+                            .foregroundStyle(.gray)
+                            .font(.system(.body, design: .rounded))
+                            .fontWeight(.medium)
+                        Button("Open System Settings") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                    } else {
+                        Text("No notifications yet")
+                            .foregroundStyle(.gray)
+                            .font(.system(.body, design: .rounded))
+                            .fontWeight(.medium)
                     }
                 }
                 Spacer()

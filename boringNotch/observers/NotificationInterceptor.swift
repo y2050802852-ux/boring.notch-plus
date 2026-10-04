@@ -32,6 +32,7 @@ final class NotificationInterceptor: ObservableObject {
 
     @Published var displayedNotification: NotificationRecord?
     @Published private(set) var recentNotifications: [NotificationRecord] = []
+    @Published private(set) var accessibilityGranted: Bool = false
 
     private var observer: AXObserver?
     private var appElement: AXUIElement?
@@ -54,8 +55,28 @@ final class NotificationInterceptor: ObservableObject {
         updateRunning()
     }
 
+    /// File-based trace: NSLog is not reliably visible via `log show` in this
+    /// environment, and the app is sandboxed — so the trace goes to the
+    /// container's temporary directory (readable from the terminal).
+    private static func debugLog(_ message: String) {
+        let path = FileManager.default.temporaryDirectory
+            .appendingPathComponent("boringNotch_notifications.log").path
+        let line = "\(Date()) \(message)\n"
+        if let handle = FileHandle(forWritingAtPath: path) {
+            defer { try? handle.close() }
+            handle.seekToEndOfFile()
+            if let data = line.data(using: .utf8) { handle.write(data) }
+        } else {
+            try? line.write(toFile: path, atomically: true, encoding: .utf8)
+        }
+    }
+
     func updateRunning() {
-        let shouldRun = Defaults[.notificationInterceptor] && AXIsProcessTrusted()
+        let toggle = Defaults[.notificationInterceptor]
+        let trusted = AXIsProcessTrusted()
+        accessibilityGranted = trusted
+        Self.debugLog("updateRunning toggle=\(toggle) axTrusted=\(trusted) running=\(running)")
+        let shouldRun = toggle && trusted
         if shouldRun && !running {
             start()
         } else if !shouldRun && running {
@@ -105,6 +126,7 @@ final class NotificationInterceptor: ObservableObject {
 
         self.observer = observer
         running = true
+        Self.debugLog("start: RUNNING (pid=\(nc.processIdentifier))")
         NSLog("📢 NotificationInterceptor: started")
     }
 
@@ -126,6 +148,7 @@ final class NotificationInterceptor: ObservableObject {
     // MARK: - AX events
 
     private func handleAXEvent(element: AXUIElement, notification: String) {
+        Self.debugLog("AX event: \(notification)")
         guard running, Defaults[.notificationInterceptor] else { return }
         // NOTE: the AXWindowCreated event fires before the window's
         // subrole/title are populated (they read AXUnknown/"" at callback
@@ -177,9 +200,11 @@ final class NotificationInterceptor: ObservableObject {
     private func scanBanners(in window: AXUIElement) {
         var banners: [AXUIElement] = []
         collectBanners(window, into: &banners, depth: 0)
+        Self.debugLog("scan: banners=\(banners.count)")
         var hostHidden = false
         for banner in banners {
             guard let record = extractRecord(from: banner) else { continue }
+            Self.debugLog("scan: record app=\(record.appName) title=\(record.title) body=\(record.body.prefix(30))")
             let key = "\(record.appName)|\(record.title)|\(record.subtitle)|\(record.body)"
             if let seen = seenBannerKeys[key], Date().timeIntervalSince(seen) < 10 {
                 continue
@@ -188,6 +213,7 @@ final class NotificationInterceptor: ObservableObject {
             // prune stale keys
             seenBannerKeys = seenBannerKeys.filter { Date().timeIntervalSince($0.value) < 60 }
             if !hostHidden {
+                Self.debugLog("scan: hiding banner window (mode=\(Defaults[.notificationHideOffScreen] ? "offScreen" : "close"))")
                 hideBannerWindowIfNeeded(window)
                 hostHidden = true
             }
@@ -255,6 +281,7 @@ final class NotificationInterceptor: ObservableObject {
         }
         if appName.isEmpty { appName = "通知" }
 
+        Self.debugLog("extract: texts=\(texts) appName=\(appName)")
         return NotificationRecord(appName: appName, title: title, subtitle: subtitle, body: body, date: Date())
     }
 
