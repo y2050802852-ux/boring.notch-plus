@@ -213,16 +213,15 @@ final class NotificationInterceptor: ObservableObject {
     private func scanBanners(in window: AXUIElement) {
         var banners: [AXUIElement] = []
         collectBanners(window, into: &banners, depth: 0)
-        Self.debugLog("scan: banners=\(banners.count)")
         var hostHidden = false
         for banner in banners {
             guard let record = extractRecord(from: banner) else { continue }
-            Self.debugLog("scan: record app=\(record.appName) title=\(record.title) body=\(record.body.prefix(30))")
             let key = "\(record.appName)|\(record.title)|\(record.subtitle)|\(record.body)"
             if let seen = seenBannerKeys[key], Date().timeIntervalSince(seen) < 10 {
                 continue
             }
             seenBannerKeys[key] = Date()
+            Self.debugLog("new notification: app=\(record.appName) title=\(record.title)")
             // prune stale keys
             seenBannerKeys = seenBannerKeys.filter { Date().timeIntervalSince($0.value) < 60 }
             if !hostHidden {
