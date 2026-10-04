@@ -158,69 +158,6 @@ struct NotificationSneakPeekView: View {
     }
 }
 
-/// An intercepted UserNotificationCenter alert (alarm/timer style) expanding
-/// below the notch — with the system alert's own action buttons (停止 /
-/// 稍后提醒) forwarded as real AXPress triggers.
-struct AlertSneakPeekView: View {
-    @ObservedObject private var interceptor = NotificationInterceptor.shared
-    let alert: PendingAlert
-
-    var body: some View {
-        HStack(spacing: 10) {
-            appIcon
-                .frame(width: 26, height: 26)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(alert.title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                if !alert.message.isEmpty {
-                    Text(alert.message)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.gray)
-                        .lineLimit(2)
-                }
-            }
-
-            Spacer(minLength: 8)
-
-            HStack(spacing: 6) {
-                ForEach(Array(alert.buttons.enumerated()), id: \.element.label) { _, button in
-                    Button {
-                        interceptor.pressAlertButton(button.label)
-                    } label: {
-                        Text(button.label)
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Capsule().fill(Color.white.opacity(0.15)))
-                    }
-                    .buttonStyle(.plain)
-                    .help(button.label)
-                }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-    }
-
-    @ViewBuilder
-    private var appIcon: some View {
-        if let icon = NotificationAppIcon.icon(for: alert.appName) {
-            Image(nsImage: icon)
-                .resizable()
-                .interpolation(.high)
-        } else {
-            Image(systemName: "bell.fill")
-                .font(.system(size: 13))
-                .foregroundStyle(.white)
-                .background(Circle().fill(Color.white.opacity(0.12)))
-        }
-    }
-}
-
 /// The「通知」tab in the open notch: the recent-notification history.
 struct NotificationListView: View {
     @EnvironmentObject private var vm: BoringViewModel

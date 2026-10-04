@@ -11,6 +11,11 @@
 //  kAXPositionAttribute is settable, so banners can be hidden off-screen
 //  while staying in the Notification Center list).
 //
+//  Scope: only regular-app banners are shown in the notch. Banners from
+//  system apps (Software Update, Clock, System Settings, …) are hidden and
+//  blocked outright; system alerts that are not banners (native alarms,
+//  TCC consent dialogs) are never touched.
+//
 
 import ApplicationServices
 import AppKit
@@ -26,36 +31,11 @@ struct NotificationRecord: Identifiable, Equatable {
     let date: Date
 }
 
-/// One pressable button of an intercepted system alert (the AX element is
-/// retained so the notch can trigger the real action later).
-struct AlertButton {
-    let label: String
-    let element: AXUIElement
-}
-
-/// An intercepted system alert (alarm/timer/legacy popups). The notch shows
-/// the alert's own buttons; pressing one performs the real AXPress on the
-/// (hidden) system alert. `window` is the hideable window; `trackElement`
-/// identifies the alert itself for liveness checks (they differ for alerts
-/// living inside the shared Notification Center host window).
-struct PendingAlert: Identifiable {
-    let id = UUID()
-    let appName: String
-    let title: String
-    let message: String
-    let window: AXUIElement
-    let trackElement: AXUIElement
-    let isHostAlert: Bool
-    let originalPosition: CGPoint
-    var buttons: [AlertButton]
-}
-
 @MainActor
 final class NotificationInterceptor: ObservableObject {
     static let shared = NotificationInterceptor()
 
     @Published var displayedNotification: NotificationRecord?
-    @Published var displayedAlert: PendingAlert?
     @Published private(set) var recentNotifications: [NotificationRecord] = []
     @Published private(set) var accessibilityGranted: Bool = false
 
@@ -67,13 +47,6 @@ final class NotificationInterceptor: ObservableObject {
     private var running = false
     private var hostPresent = false
     private var retryTimer: Timer?
-
-    // UserNotificationCenter watch (alarm/timer/legacy alerts)
-    private var uncTimer: Timer?
-    private var uncSeenWindows: [CFHashCode: Date] = [:]
-    // Windows we hid off-screen, with their original positions, so stop()
-    // can bring them back and nothing is lost when interception turns off.
-    private var uncHidden: [CFHashCode: (window: AXUIElement, original: CGPoint)] = [:]
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -185,7 +158,6 @@ final class NotificationInterceptor: ObservableObject {
             }
         }
         running = true
-        startUNCWatch()
         Self.debugLog("start: RUNNING (pid=\(nc.processIdentifier))")
     }
 
@@ -200,7 +172,6 @@ final class NotificationInterceptor: ObservableObject {
         scanTimer = nil
         seenBannerKeys.removeAll()
         displayedNotification = nil
-        stopUNCWatch()
         running = false
         NSLog("📢 NotificationInterceptor: stopped")
     }
@@ -263,6 +234,10 @@ final class NotificationInterceptor: ObservableObject {
                 hideBannerWindowIfNeeded(window)
                 hostHidden = true
             }
+            if Self.isBlockedSystemApp(record.appName) {
+                Self.debugLog("system app banner: blocked")
+                continue
+            }
             if Self.isMuted(record.appName) {
                 Self.debugLog("muted app: history only, no sneak peek")
                 recordInHistory(record)
@@ -270,112 +245,6 @@ final class NotificationInterceptor: ObservableObject {
                 display(record)
             }
         }
-
-        // Alarm/timer alerts live inside this same Notification Center host
-        // window but are NOT AXNotificationCenterBanner elements — scan for
-        // them when no banner is present.
-        if banners.isEmpty {
-            scanHostAlert(in: window)
-        }
-    }
-
-    // MARK: - Alarm alerts inside the Notification Center host window
-
-    /// Alarm/timer alerts share the banner host window; find alert-shaped
-    /// containers (a button's top ancestor below the host) and intercept the
-    /// alarm-like ones.
-    private func scanHostAlert(in host: AXUIElement) {
-        let buttonEls = collectRoleElements(host, role: "AXButton", depth: 0)
-
-        var containers: [AXUIElement] = []
-        var seenContainerHashes: Set<CFHashCode> = []
-        for button in buttonEls {
-            guard let container = topAncestorBelow(button, root: host) else { continue }
-            let hash = CFHash(container)
-            if !seenContainerHashes.contains(hash) {
-                seenContainerHashes.insert(hash)
-                containers.append(container)
-            }
-        }
-
-        for container in containers {
-            let hash = CFHash(container)
-            // Already showing this exact alert — it stays ringing for minutes.
-            if let current = displayedAlert, CFHash(current.trackElement) == hash { return }
-            if let seen = uncSeenWindows[hash], Date().timeIntervalSince(seen) < 600 { continue }
-            uncSeenWindows[hash] = Date()
-
-            var texts: [String] = []
-            collectTexts(container, into: &texts, depth: 0)
-            let cbtns = collectRoleElements(container, role: "AXButton", depth: 0)
-            let buttons: [AlertButton] = cbtns.compactMap { el in
-                guard let label = axStr(el, kAXTitleAttribute) ?? axStr(el, kAXDescriptionAttribute),
-                      !label.isEmpty else { return nil }
-                return AlertButton(label: label, element: el)
-            }
-            guard !texts.isEmpty, !buttons.isEmpty else { continue }
-
-            Self.debugLog(
-                "NC host alert candidate: texts=\(texts) buttons=\(buttons.map(\.label))")
-            guard Self.isInterceptableAlert(texts: texts, buttons: buttons) else {
-                Self.debugLog("NC host alert: skipped (not an alarm/timer alert)")
-                continue
-            }
-
-            let original = axPoint(host, kAXPositionAttribute) ?? .zero
-            if Defaults[.notificationHideOriginal] && !notchWouldBeHidden() {
-                setWindowPosition(host, CGPoint(x: -2000, y: -2000))
-                uncHidden[CFHash(host)] = (host, original)
-                Self.debugLog("NC host alert: host hidden off-screen (original=\(original))")
-            }
-
-            let title = texts[0]
-            let message = texts.dropFirst().joined(separator: " — ")
-            let appName = "时钟"
-            recordInHistory(
-                NotificationRecord(
-                    appName: appName, title: title, subtitle: "", body: message, date: Date()))
-            if Self.isMuted(appName) {
-                Self.debugLog("NC host alert: app muted, history only")
-                continue
-            }
-            Self.debugLog("NC host alert: INTERCEPTED -> notch")
-            withAnimation(.smooth(duration: 0.3)) {
-                displayedAlert = PendingAlert(
-                    appName: appName, title: title, message: message,
-                    window: host, trackElement: container, isHostAlert: true,
-                    originalPosition: original, buttons: buttons)
-            }
-        }
-
-        // The alert element vanished (stopped/snoozed/expired): clear the
-        // notch display and give the host window its position back.
-        if let alert = displayedAlert, alert.isHostAlert {
-            let stillThere = containers.contains { CFHash($0) == CFHash(alert.trackElement) }
-            if !stillThere {
-                displayedAlert = nil
-                if let entry = uncHidden.removeValue(forKey: CFHash(alert.window)) {
-                    setWindowPosition(entry.window, entry.original)
-                }
-            }
-        }
-    }
-
-    private func topAncestorBelow(_ el: AXUIElement, root: AXUIElement) -> AXUIElement? {
-        var current = el
-        for _ in 0..<10 {
-            guard let parent = axParent(current) else { return nil }
-            if CFHash(parent) == CFHash(root) { return current }
-            current = parent
-        }
-        return nil
-    }
-
-    private func axParent(_ el: AXUIElement) -> AXUIElement? {
-        var v: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(el, kAXParentAttribute as CFString, &v) == .success,
-              let parent = v else { return nil }
-        return (parent as! AXUIElement)
     }
 
     private func hideBannerWindowIfNeeded(_ window: AXUIElement) {
@@ -395,197 +264,6 @@ final class NotificationInterceptor: ObservableObject {
                 AXUIElementPerformAction(banner, closeName as CFString)
             }
         }
-    }
-
-    // MARK: - UserNotificationCenter alerts (alarm/timer/legacy popups)
-
-    /// Alarm, timer and legacy-style alerts are rendered by the
-    /// UserNotificationCenter process and never appear as Notification
-    /// Center banners — a separate lightweight poll watches its windows.
-    private func startUNCWatch() {
-        guard uncTimer == nil else { return }
-        uncTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.scanUNC()
-            }
-        }
-        Self.debugLog("UNC watch: started")
-    }
-
-    private func stopUNCWatch() {
-        uncTimer?.invalidate()
-        uncTimer = nil
-        uncSeenWindows.removeAll()
-        // Bring back any alert we hid off-screen so nothing is lost if the
-        // user disables interception while an alarm is ringing.
-        for (_, entry) in uncHidden {
-            setWindowPosition(entry.window, entry.original)
-        }
-        uncHidden.removeAll()
-        displayedAlert = nil
-    }
-
-    /// Don't hide the system alert while the notch itself would be hidden
-    /// (fullscreen) — an invisible ringing alarm with no way to stop it is
-    /// worse than the system popup.
-    private func notchWouldBeHidden() -> Bool {
-        guard Defaults[.hideNotchOption] != .never else { return false }
-        return FullscreenMediaDetector.shared.fullscreenStatus.values.contains(true)
-    }
-
-    private func findUNCApp() -> AXUIElement? {
-        guard let unc = NSWorkspace.shared.runningApplications.first(where: {
-            $0.bundleIdentifier == "com.apple.UserNotificationCenter"
-        }), unc.processIdentifier != 0 else { return nil }
-        return AXUIElementCreateApplication(unc.processIdentifier)
-    }
-
-    private func scanUNC() {
-        guard running, Defaults[.notificationInterceptor] else { return }
-        guard let appElement = findUNCApp() else { return }
-        let windows = axList(appElement, kAXWindowsAttribute)
-        for window in windows {
-            handleAlertWindow(window)
-        }
-        // The alert was dismissed (or the action button closed it): clear
-        // the notch display and prune stale bookkeeping.
-        if let alert = displayedAlert {
-            let stillThere = windows.contains { CFHash($0) == CFHash(alert.window) }
-            if !stillThere {
-                displayedAlert = nil
-                uncHidden.removeValue(forKey: CFHash(alert.window))
-            }
-        }
-        if uncSeenWindows.count > 16 {
-            uncSeenWindows = uncSeenWindows.filter { Date().timeIntervalSince($0.value) < 600 }
-        }
-    }
-
-    private func handleAlertWindow(_ window: AXUIElement) {
-        var texts: [String] = []
-        collectTexts(window, into: &texts, depth: 0)
-        guard !texts.isEmpty else { return }
-
-        let hash = CFHash(window)
-        // The alert we are currently showing must never be re-processed (it
-        // stays ringing on screen for minutes while hidden).
-        if let current = displayedAlert, CFHash(current.window) == hash { return }
-        if let seen = uncSeenWindows[hash], Date().timeIntervalSince(seen) < 600 { return }
-        uncSeenWindows[hash] = Date()
-
-        // Debug dump so a missed interception can be diagnosed from the log.
-        let buttonEls = collectRoleElements(window, role: "AXButton", depth: 0)
-        let buttonNames = buttonEls.compactMap { el in
-            axStr(el, kAXTitleAttribute) ?? axStr(el, kAXDescriptionAttribute)
-        }
-        Self.debugLog(
-            "UNC alert window: subrole=\(axStr(window, kAXSubroleAttribute) ?? "?") "
-                + "title=\(axStr(window, kAXTitleAttribute) ?? "?") texts=\(texts) buttons=\(buttonNames)")
-
-        var buttons: [AlertButton] = []
-        for el in buttonEls {
-            if let label = axStr(el, kAXTitleAttribute) ?? axStr(el, kAXDescriptionAttribute),
-               !label.isEmpty {
-                buttons.append(AlertButton(label: label, element: el))
-            }
-        }
-
-        // Only alarm/timer-style alerts are hijacked. Other
-        // UserNotificationCenter windows are consent/security dialogs
-        // (calendar access, etc.) that must stay visible and interactive.
-        guard Self.isInterceptableAlert(texts: texts, buttons: buttons) else {
-            Self.debugLog("UNC alert: skipped (not an alarm/timer alert)")
-            return
-        }
-
-        let original = axPoint(window, kAXPositionAttribute) ?? .zero
-        if Defaults[.notificationHideOriginal] && !notchWouldBeHidden() {
-            setWindowPosition(window, CGPoint(x: -2000, y: -2000))
-            uncHidden[hash] = (window, original)
-            Self.debugLog("UNC alert: hidden off-screen (original=\(original))")
-        }
-
-        let title = texts[0]
-        let message = texts.dropFirst().joined(separator: " — ")
-        let appName = "时钟"
-        // History always keeps a copy; muted apps get history only.
-        recordInHistory(
-            NotificationRecord(
-                appName: appName, title: title, subtitle: "", body: message, date: Date()))
-        if Self.isMuted(appName) {
-            Self.debugLog("UNC alert: app muted, history only")
-            return
-        }
-        withAnimation(.smooth(duration: 0.3)) {
-            displayedAlert = PendingAlert(
-                appName: appName, title: title, message: message,
-                window: window, trackElement: window, isHostAlert: false,
-                originalPosition: original, buttons: buttons)
-        }
-    }
-
-    /// Alarm/timer alerts are recognized by their texts or button labels.
-    /// Consent dialogs (TCC prompts: 帮助/不允许/允许…) are excluded even
-    /// harder — they must never be hidden or auto-answered.
-    private static let alarmAlertKeywords = ["闹钟", "计时器", "alarm", "timer", "snooze", "稍后提醒"]
-    private static let consentDialogKeywords = ["不允许", "don't allow", "帮助", "help"]
-
-    static func isInterceptableAlert(texts: [String], buttons: [AlertButton]) -> Bool {
-        let labels = buttons.map { $0.label.lowercased() }
-        if labels.contains(where: { label in
-            consentDialogKeywords.contains { label.contains($0) }
-        }) {
-            return false
-        }
-        let haystack = (texts + buttons.map(\.label)).joined(separator: " ").lowercased()
-        return alarmAlertKeywords.contains { haystack.contains($0) }
-    }
-
-    /// Press one of the intercepted alert's real buttons from the notch.
-    func pressAlertButton(_ label: String) {
-        guard let alert = displayedAlert,
-              let button = alert.buttons.first(where: { $0.label == label }) else { return }
-        let err = AXUIElementPerformAction(button.element, kAXPressAction as CFString)
-        Self.debugLog("UNC alert: press \(label) err=\(err.rawValue)")
-        if err != .success {
-            // The press failed — bring the system alert back so nothing is lost.
-            setWindowPosition(alert.window, alert.originalPosition)
-            uncHidden.removeValue(forKey: CFHash(alert.window))
-        }
-        withAnimation(.smooth(duration: 0.3)) {
-            displayedAlert = nil
-        }
-    }
-
-    private func setWindowPosition(_ window: AXUIElement?, _ position: CGPoint) {
-        guard let window else { return }
-        var target = position
-        guard let value = AXValueCreate(.cgPoint, &target) else { return }
-        let err = AXUIElementSetAttributeValue(window, kAXPositionAttribute as CFString, value)
-        if err != .success {
-            Self.debugLog("UNC alert: set position err=\(err.rawValue)")
-        }
-    }
-
-    private func collectRoleElements(_ el: AXUIElement, role: String, depth: Int) -> [AXUIElement] {
-        guard depth < 12 else { return [] }
-        var out: [AXUIElement] = []
-        if (axStr(el, kAXRoleAttribute) ?? "") == role {
-            out.append(el)
-        }
-        for child in axList(el, kAXChildrenAttribute) {
-            out.append(contentsOf: collectRoleElements(child, role: role, depth: depth + 1))
-        }
-        return out
-    }
-
-    private func axPoint(_ el: AXUIElement, _ name: String) -> CGPoint? {
-        var v: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(el, name as CFString, &v) == .success,
-              let point = v, AXValueGetType(point as! AXValue) == .cgPoint else { return nil }
-        var cg = CGPoint.zero
-        AXValueGetValue(point as! AXValue, .cgPoint, &cg)
-        return cg
     }
 
     // MARK: - Extraction
@@ -638,6 +316,20 @@ final class NotificationInterceptor: ObservableObject {
     }
 
     // MARK: - Display
+
+    /// System apps whose banners are blocked outright: hidden like any
+    /// banner, but never shown in the notch and never recorded. Matched
+    /// exactly (case-insensitive) against the name extracted from the banner.
+    private static let blockedSystemApps: Set<String> = [
+        "软件更新", "software update",
+        "系统设置", "system settings",
+        "时钟", "clock",
+        "屏幕使用时间", "screen time",
+    ]
+
+    static func isBlockedSystemApp(_ appName: String) -> Bool {
+        blockedSystemApps.contains(appName.trimmingCharacters(in: .whitespaces).lowercased())
+    }
 
     /// Muted apps never pop the sneak peek; their notifications are only
     /// recorded in the history list.

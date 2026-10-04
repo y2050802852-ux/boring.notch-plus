@@ -361,16 +361,7 @@ struct ContentView: View {
                       // below the bar to reveal the intercepted notification
                       // (like the volume sneak-peek, but with room for the
                       // title and body — nothing hides behind the camera).
-                      // System alerts (alarm/timer, rendered outside
-                      // Notification Center) take priority over regular
-                      // notifications — they carry action buttons.
-                      if !coordinator.expandingView.show, vm.notchState == .closed, !vm.hideOnClosed,
-                         let alert = notificationInterceptor.displayedAlert {
-                          AlertSneakPeekView(alert: alert)
-                              .frame(width: max(notificationRowFloor, 460), alignment: .leading)
-                              .padding(.top, 6)
-                              .transition(.move(edge: .top).combined(with: .opacity))
-                      } else if !coordinator.expandingView.show, vm.notchState == .closed,
+                      if !coordinator.expandingView.show, vm.notchState == .closed,
                          let record = notificationInterceptor.displayedNotification, !vm.hideOnClosed {
                           NotificationSneakPeekView(record: record)
                               .frame(width: notificationRowWidth, alignment: .leading)
@@ -638,11 +629,8 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
-            // While a system alert (alarm) waits in the sneak peek the notch
-            // must not hover-open — it would swallow the action buttons.
             guard vm.notchState == .closed,
                   !coordinator.sneakPeek.show,
-                  notificationInterceptor.displayedAlert == nil,
                   Defaults[.openNotchOnHover] else { return }
 
             hoverTask = Task {
@@ -652,8 +640,7 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.sneakPeek.show,
-                          self.notificationInterceptor.displayedAlert == nil else { return }
+                          !self.coordinator.sneakPeek.show else { return }
 
                     self.doOpen()
                 }
