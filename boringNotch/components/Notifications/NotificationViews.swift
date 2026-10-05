@@ -42,14 +42,13 @@ enum NotificationAppIcon {
         return URL(fileURLWithPath: path)
     }
 
-    /// Activate the app if running, otherwise launch it.
+    /// Activate the app if running, otherwise launch it. Always goes through
+    /// openApplication — plain NSRunningApplication.activate() silently fails
+    /// when called from a menu-bar (accessory) app on recent macOS.
     static func openApp(at url: URL?) {
         guard let url else { return }
-        if let running = NSWorkspace.shared.runningApplications.first(where: { $0.bundleURL == url }) {
-            running.activate()
-        } else {
-            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
-        }
+        NSWorkspace.shared.openApplication(
+            at: url, configuration: NSWorkspace.OpenConfiguration())
     }
 
     private static func runningAppIcon(for name: String) -> NSImage? {

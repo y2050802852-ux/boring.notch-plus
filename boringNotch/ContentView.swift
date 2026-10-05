@@ -648,8 +648,13 @@ struct ContentView: View {
                 haptics.toggle()
             }
             
+            // While a notification sneak-peek (or a system alert) is showing,
+            // the notch must not hover-open — the pointer is likely heading
+            // for the notification row to open its app, and an auto-open
+            // would swallow the click.
             guard vm.notchState == .closed,
                   !coordinator.sneakPeek.show,
+                  notificationInterceptor.displayedNotification == nil,
                   Defaults[.openNotchOnHover] else { return }
 
             hoverTask = Task {
@@ -659,7 +664,8 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.sneakPeek.show else { return }
+                          !self.coordinator.sneakPeek.show,
+                          self.notificationInterceptor.displayedNotification == nil else { return }
 
                     self.doOpen()
                 }
