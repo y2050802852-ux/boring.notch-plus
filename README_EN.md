@@ -29,7 +29,7 @@ All original features (music controls, calendar, shelf, HUD replacement, camera 
 
 ## 📥 Install
 
-1. Grab the latest `boringNotch-1.0.5.dmg` from [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases)
+1. Grab the latest `boringNotch-*.dmg` from [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases)
 2. Open the DMG and drag **boringNotch.app** into Applications
 3. If macOS warns about an unidentified developer: System Settings → Privacy & Security → **Open Anyway** (this project is ad-hoc signed)
 
