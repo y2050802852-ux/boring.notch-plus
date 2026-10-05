@@ -14496,6 +14496,16 @@
         }
       }
     },
+    "Open Clipboard History:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开剪贴板历史："
+          }
+        }
+      }
+    },
     "Open Reminder Settings" : {
       "localizations" : {
         "ar" : {
@@ -14812,6 +14822,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "当项目存在时默认打开暂存器"
+          }
+        }
+      }
+    },
+    "Opens the notch on the clipboard history tab. Press the shortcut again to close it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在剪贴板历史标签页打开刘海；再按一次快捷键即可关闭。"
           }
         }
       }

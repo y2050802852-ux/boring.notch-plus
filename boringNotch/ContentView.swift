@@ -315,6 +315,7 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
+                    Group {
                     if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
@@ -360,6 +361,15 @@ struct ContentView: View {
                        } else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
+                    }
+                    // When a notification widens the bar, the top bar must
+                    // stay CENTERED so its notch-cutout segment remains
+                    // aligned with the hardware notch — otherwise the
+                    // weather temperature (and music slots) slide left and
+                    // disappear behind the physical camera housing.
+                    .frame(
+                        maxWidth: vm.notchState == .closed && notificationInterceptor.displayedNotification != nil ? .infinity : nil,
+                        alignment: .center)
 
                       // Notification replacement: the notch EXPANDS DOWNWARD
                       // below the bar to reveal the intercepted notification

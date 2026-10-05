@@ -455,6 +455,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) { [weak self] in
+            Task { [weak self] in
+                guard let self = self else { return }
+
+                let mouseLocation = NSEvent.mouseLocation
+                var viewModel = self.vm
+
+                if Defaults[.showOnAllDisplays] {
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation) {
+                            if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                                viewModel = screenViewModel
+                                break
+                            }
+                        }
+                    }
+                }
+
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
+
+                // Toggle: showing the clipboard panel already → close the
+                // notch; otherwise open (or refocus) it straight onto the
+                // clipboard history tab.
+                if viewModel.notchState == .open && self.coordinator.currentView == .clipboard {
+                    await MainActor.run {
+                        viewModel.close()
+                    }
+                    return
+                }
+                await MainActor.run {
+                    BoringViewCoordinator.shared.currentView = .clipboard
+                    if viewModel.notchState == .closed {
+                        viewModel.open()
+                    }
+                }
+            }
+        }
+
         NotificationCenter.default.addObserver(
             forName: Notification.Name.pomodoroPhaseEnded, object: nil, queue: nil
         ) { [weak self] _ in
