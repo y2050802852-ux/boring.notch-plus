@@ -184,11 +184,10 @@ final class NotificationInterceptor: ObservableObject {
     private func handleAXEvent(element: AXUIElement, notification: String) {
         guard running, Defaults[.notificationInterceptor] else { return }
         // Event-driven fast path. The event element can be ANY Notification
-        // Center window — including the full panel (clicking the clock),
-        // whose history entries are banner-shaped but are stored
-        // notifications, not fresh banners. Re-derive the actual banner host
-        // with the full signature check before scanning; the 0.15s poll is
-        // the safety net when the host's attributes are not set yet.
+        // Center window — including the full-screen panel (clicking the
+        // clock) — so always re-derive the banner host with the signature
+        // check; scanBanners' geometry check rejects panel history. The
+        // 0.15s poll is the safety net when attributes are not set yet.
         guard let host = findBannerHost() else { return }
         scanBanners(in: host)
     }
@@ -199,23 +198,9 @@ final class NotificationInterceptor: ObservableObject {
         }), nc.processIdentifier != 0 else { return nil }
         let app = AXUIElementCreateApplication(nc.processIdentifier)
         return axList(app, kAXWindowsAttribute).first { w in
-            guard (axStr(w, kAXSubroleAttribute) ?? "") == "AXSystemDialog",
-                  (axStr(w, kAXTitleAttribute) ?? "") == "Notification Center" else { return false }
-            // The Notification Center panel (opened by clicking the clock)
-            // transiently matches the host signature but is screen-height
-            // tall and carries stored history entries — banner hosts only
-            // ever hold a few stacked banners.
-            return axSize(w).height < 550
+            (axStr(w, kAXSubroleAttribute) ?? "") == "AXSystemDialog"
+                && (axStr(w, kAXTitleAttribute) ?? "") == "Notification Center"
         }
-    }
-
-    private func axSize(_ el: AXUIElement) -> CGSize {
-        var v: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(el, kAXSizeAttribute as CFString, &v) == .success,
-              let value = v, CFGetTypeID(value) == AXValueGetTypeID() else { return .zero }
-        var size = CGSize.zero
-        AXValueGetValue(value as! AXValue, .cgSize, &size)
-        return size
     }
 
     private func scanTick() {
@@ -240,6 +225,15 @@ final class NotificationInterceptor: ObservableObject {
     private func scanBanners(in window: AXUIElement) {
         var banners: [AXUIElement] = []
         collectBanners(window, into: &banners, depth: 0)
+        // Fresh banners render right below the menu bar (measured y ≈ 55).
+        // The Notification Center panel (clock click) exposes its history in
+        // banner-shaped elements far below the widget row (y ≥ 230) — when
+        // the topmost element sits that low, this window is the panel and
+        // its entries are stored notifications: never replay them.
+        if let topY = banners.map({ axPoint($0).y }).min(), topY > 120 {
+            Self.debugLog("scan: banner-shaped content at y=\(Int(topY)) is panel history — skipped")
+            return
+        }
         var hostHidden = false
         for banner in banners {
             guard let record = extractRecord(from: banner) else { continue }
@@ -422,4 +416,13 @@ private func axActions(_ el: AXUIElement) -> [String] {
     var v: CFArray?
     guard AXUIElementCopyActionNames(el, &v) == .success, let arr = v as? [String] else { return [] }
     return arr
+}
+
+private func axPoint(_ el: AXUIElement) -> CGPoint {
+    var v: CFTypeRef?
+    guard AXUIElementCopyAttributeValue(el, kAXPositionAttribute as CFString, &v) == .success,
+          let value = v, CFGetTypeID(value) == AXValueGetTypeID() else { return .zero }
+    var point = CGPoint.zero
+    AXValueGetValue(value as! AXValue, .cgPoint, &point)
+    return point
 }
