@@ -362,13 +362,16 @@ struct ContentView: View {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                        }
                     }
-                    // When a notification widens the bar, the top bar must
-                    // stay CENTERED so its notch-cutout segment remains
-                    // aligned with the hardware notch — otherwise the
-                    // weather temperature (and music slots) slide left and
-                    // disappear behind the physical camera housing.
+                    // When a notification widens the bar, clamp the top bar
+                    // to the notification row's dynamic width and center its
+                    // content, so the notch-cutout segment stays aligned with
+                    // the hardware notch (temperature never slides behind the
+                    // camera) AND the bar width still follows the message
+                    // length. maxWidth:.infinity here would inflate the top
+                    // bar to the whole window proposal (612pt) — a regression
+                    // that made every notification full-width.
                     .frame(
-                        maxWidth: vm.notchState == .closed && notificationInterceptor.displayedNotification != nil ? .infinity : nil,
+                        maxWidth: vm.notchState == .closed && notificationInterceptor.displayedNotification != nil ? notificationRowWidth : nil,
                         alignment: .center)
 
                       // Notification replacement: the notch EXPANDS DOWNWARD
