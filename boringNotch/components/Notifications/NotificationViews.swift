@@ -31,6 +31,27 @@ enum NotificationAppIcon {
         return icon
     }
 
+    /// URL of the installed app matching `name`, for click-to-open. Nil when
+    /// the app is neither running nor found on disk (e.g. iOS-only apps that
+    /// forward notifications to the Mac).
+    static func installedAppURL(for appName: String) -> URL? {
+        let name = appName.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !name.isEmpty else { return nil }
+        if installedAppsByName == nil { installedAppsByName = scanInstalledApps() }
+        guard let path = installedAppsByName?[name] else { return nil }
+        return URL(fileURLWithPath: path)
+    }
+
+    /// Activate the app if running, otherwise launch it.
+    static func openApp(at url: URL?) {
+        guard let url else { return }
+        if let running = NSWorkspace.shared.runningApplications.first(where: { $0.bundleURL == url }) {
+            running.activate()
+        } else {
+            NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+        }
+    }
+
     private static func runningAppIcon(for name: String) -> NSImage? {
         NSWorkspace.shared.runningApplications.first {
             $0.localizedName?.caseInsensitiveCompare(name) == .orderedSame
@@ -110,35 +131,43 @@ struct NotificationSneakPeekView: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            appIcon
-                .frame(width: 26, height: 26)
+        Button {
+            NotificationAppIcon.openApp(at: record.appURL)
+        } label: {
+            HStack(spacing: 10) {
+                appIcon
+                    .frame(width: 26, height: 26)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(record.appName)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundStyle(.gray)
-                    .lineLimit(1)
-                Text(record.title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                if !record.body.isEmpty {
-                    Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
-                        .font(.system(size: 10))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(record.appName)
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(.gray)
-                        .lineLimit(2)
+                        .lineLimit(1)
+                    Text(record.title)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    if !record.body.isEmpty {
+                        Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.gray)
+                            .lineLimit(2)
+                    }
                 }
+
+                Spacer(minLength: 0)
+
+                Text(record.date, style: .time)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.gray)
             }
-
-            Spacer(minLength: 0)
-
-            Text(record.date, style: .time)
-                .font(.system(size: 9))
-                .foregroundStyle(.gray)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .buttonStyle(.plain)
+        .disabled(record.appURL == nil)
+        .help(record.appURL == nil ? "" : "Open app")
     }
 
     /// The sending app's real icon; the bell placeholder when the app name
@@ -218,35 +247,12 @@ struct NotificationListView: View {
                 ScrollView {
                     VStack(spacing: 6) {
                         ForEach(interceptor.recentNotifications) { record in
-                            HStack(alignment: .top, spacing: 10) {
-                                rowAppIcon(for: record)
-                                    .frame(width: 22)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack {
-                                        Text(record.appName)
-                                            .font(.system(size: 9, weight: .medium))
-                                            .foregroundStyle(.gray)
-                                        Spacer()
-                                        Text(record.date, style: .time)
-                                            .font(.system(size: 9))
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Text(record.title)
-                                        .font(.system(size: 12, weight: .semibold))
-                                        .foregroundStyle(.white)
-                                        .lineLimit(1)
-                                    Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(.gray)
-                                        .lineLimit(2)
-                                }
-                                muteButton(for: record)
-                            }
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.white.opacity(0.06))
-                            )
+                            historyRow(for: record)
+                                .padding(8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white.opacity(0.06))
+                                )
                         }
                     }
                 }
@@ -257,6 +263,53 @@ struct NotificationListView: View {
         // Scrolling the history must never feed the swipe-up-to-close gesture.
         .onHover { hovering in
             vm.isHoveringScrollableContent = hovering
+        }
+    }
+
+    /// A history row: the main content is a click-to-open-app button, the
+    /// mute toggle stays outside the button.
+    private func historyRow(for record: NotificationRecord) -> some View {
+        HStack(alignment: .top, spacing: 4) {
+            historyRowButton(for: record)
+            muteButton(for: record)
+        }
+    }
+
+    private func historyRowButton(for record: NotificationRecord) -> some View {
+        Button {
+            NotificationAppIcon.openApp(at: record.appURL)
+        } label: {
+            historyRowLabel(for: record)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(record.appURL == nil)
+        .help(record.appURL == nil ? "" : "Open app")
+    }
+
+    private func historyRowLabel(for record: NotificationRecord) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            rowAppIcon(for: record)
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(record.appName)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.gray)
+                    Spacer()
+                    Text(record.date, style: .time)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.gray)
+                }
+                Text(record.title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.gray)
+                    .lineLimit(2)
+            }
         }
     }
 

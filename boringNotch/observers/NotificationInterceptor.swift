@@ -29,6 +29,9 @@ struct NotificationRecord: Identifiable, Equatable {
     let subtitle: String
     let body: String
     let date: Date
+    /// The sending app's bundle URL, resolved at transcription time so a
+    /// click on the notification can activate/open it. Nil when unresolvable.
+    let appURL: URL?
 }
 
 @MainActor
@@ -331,7 +334,20 @@ final class NotificationInterceptor: ObservableObject {
         if appName.isEmpty { appName = "通知" }
 
         Self.debugLog("extract: texts=\(texts) appName=\(appName)")
-        return NotificationRecord(appName: appName, title: title, subtitle: subtitle, body: body, date: Date())
+        return NotificationRecord(
+            appName: appName, title: title, subtitle: subtitle, body: body, date: Date(),
+            appURL: Self.resolveAppURL(for: appName))
+    }
+
+    /// Resolve the sending app's bundle URL: running apps first (the sender
+    /// of a banner is usually running), then the installed-app registry.
+    private static func resolveAppURL(for appName: String) -> URL? {
+        if let running = NSWorkspace.shared.runningApplications.first(where: {
+            $0.localizedName?.caseInsensitiveCompare(appName) == .orderedSame
+        }) {
+            return running.bundleURL
+        }
+        return NotificationAppIcon.installedAppURL(for: appName)
     }
 
     // MARK: - Display

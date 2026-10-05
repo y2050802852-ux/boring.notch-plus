@@ -14516,6 +14516,16 @@
         }
       }
     },
+    "Open app" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开应用"
+          }
+        }
+      }
+    },
     "Open notch on hover" : {
       "localizations" : {
         "ar" : {
