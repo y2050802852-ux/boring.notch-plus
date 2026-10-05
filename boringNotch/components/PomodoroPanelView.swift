@@ -148,6 +148,11 @@ struct PomodoroLiveActivity: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(width: Self.slotWidth, alignment: .center)
+                    // The pomodoro bar is asymmetric (left slot + notch width
+                    // + 56pt slot); when the whole bar is screen-centered the
+                    // countdown lands ~5pt left of the visible black region's
+                    // center. Nudge it back so it looks centered.
+                    .offset(x: 5)
             }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
