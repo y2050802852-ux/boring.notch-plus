@@ -180,9 +180,14 @@ final class NotificationInterceptor: ObservableObject {
 
     private func handleAXEvent(element: AXUIElement, notification: String) {
         guard running, Defaults[.notificationInterceptor] else { return }
-        // Event-driven fast path: scan the delivered element right away (the
-        // poll tick is the slower safety net).
-        scanBanners(in: element)
+        // Event-driven fast path. The event element can be ANY Notification
+        // Center window — including the full panel (clicking the clock),
+        // whose history entries are banner-shaped but are stored
+        // notifications, not fresh banners. Re-derive the actual banner host
+        // with the full signature check before scanning; the 0.15s poll is
+        // the safety net when the host's attributes are not set yet.
+        guard let host = findBannerHost() else { return }
+        scanBanners(in: host)
     }
 
     private func findBannerHost() -> AXUIElement? {
@@ -191,9 +196,23 @@ final class NotificationInterceptor: ObservableObject {
         }), nc.processIdentifier != 0 else { return nil }
         let app = AXUIElementCreateApplication(nc.processIdentifier)
         return axList(app, kAXWindowsAttribute).first { w in
-            (axStr(w, kAXSubroleAttribute) ?? "") == "AXSystemDialog"
-                && (axStr(w, kAXTitleAttribute) ?? "") == "Notification Center"
+            guard (axStr(w, kAXSubroleAttribute) ?? "") == "AXSystemDialog",
+                  (axStr(w, kAXTitleAttribute) ?? "") == "Notification Center" else { return false }
+            // The Notification Center panel (opened by clicking the clock)
+            // transiently matches the host signature but is screen-height
+            // tall and carries stored history entries — banner hosts only
+            // ever hold a few stacked banners.
+            return axSize(w).height < 550
         }
+    }
+
+    private func axSize(_ el: AXUIElement) -> CGSize {
+        var v: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(el, kAXSizeAttribute as CFString, &v) == .success,
+              let value = v, CFGetTypeID(value) == AXValueGetTypeID() else { return .zero }
+        var size = CGSize.zero
+        AXValueGetValue(value as! AXValue, .cgSize, &size)
+        return size
     }
 
     private func scanTick() {
