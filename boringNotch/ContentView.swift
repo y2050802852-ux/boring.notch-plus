@@ -186,6 +186,10 @@ struct ContentView: View {
                             }
                     }
                     .onAppear {
+                        // Arm clipboard history polling at startup (the
+                        // manager is otherwise created lazily on first
+                        // access).
+                        _ = ClipboardManager.shared
                         Task {
                             try? await Task.sleep(for: .seconds(1))
                             await MainActor.run {
@@ -435,6 +439,8 @@ struct ContentView: View {
                         PomodoroPanelView()
                     case .notifications:
                         NotificationListView()
+                    case .clipboard:
+                        ClipboardHistoryView()
                     }
                 }
                 .transition(

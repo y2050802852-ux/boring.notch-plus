@@ -183,6 +183,10 @@ extension Defaults.Keys {
     /// sneak peek — they are only recorded in the notification history.
     static let notificationMutedApps = Key<[String]>("notificationMutedApps", default: [])
     
+    // MARK: Clipboard history
+    static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: true)
+    static let clipboardHistoryLimit = Key<Int>("clipboardHistoryLimit", default: 50)
+
     // MARK: Calendar
     static let calendarSelectionState = Key<CalendarSelectionState>("calendarSelectionState", default: .all)
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)

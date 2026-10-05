@@ -4644,12 +4644,32 @@
         }
       }
     },
+    "Clear clipboard history" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空剪贴板历史"
+          }
+        }
+      }
+    },
     "Clear notifications" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除通知"
+          }
+        }
+      }
+    },
+    "Clear now" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即清空"
           }
         }
       }
@@ -4750,6 +4770,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Clear slot"
+          }
+        }
+      }
+    },
+    "Clipboard" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板"
+          }
+        }
+      }
+    },
+    "Clipboard history" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板历史"
           }
         }
       }
@@ -5364,6 +5404,26 @@
         }
       }
     },
+    "Copied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制"
+          }
+        }
+      }
+    },
+    "Copy anything and it shows up here" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制的文字和图片会自动出现在这里"
+          }
+        }
+      }
+    },
     "Copy items on drag" : {
       "localizations" : {
         "ar" : {
@@ -5460,6 +5520,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "拖拽时复制项目"
+          }
+        }
+      }
+    },
+    "Copy to clipboard" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制到剪贴板"
           }
         }
       }
@@ -7764,6 +7834,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "启用虚拟镜像"
+          }
+        }
+      }
+    },
+    "Enable clipboard history" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用剪贴板历史"
           }
         }
       }
@@ -13261,6 +13341,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "永不隐藏"
+          }
+        }
+      }
+    },
+    "No clipboard history yet" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无剪贴板历史"
           }
         }
       }
@@ -19565,6 +19655,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "系统功能"
+          }
+        }
+      }
+    },
+    "Text and images you copy are captured automatically. Copies flagged as concealed (e.g. by password managers) are never recorded. Click an entry in the notch to copy it back." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你复制的内容（文字与图片）会自动记录；密码管理器等标记为隐藏的内容永不入库。在刘海中点击条目即可回填剪贴板。"
           }
         }
       }

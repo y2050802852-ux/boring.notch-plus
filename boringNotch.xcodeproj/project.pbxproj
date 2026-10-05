@@ -82,6 +82,7 @@
 		147163982C5D35B70068B555 /* MusicVisualizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163972C5D35B70068B555 /* MusicVisualizer.swift */; };
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		AA00B0BA5E55F10000000002 /* PomodoroManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F10000000001 /* PomodoroManager.swift */; };
+		AA00B0BA5E55F10000000010 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F10000000011 /* ClipboardManager.swift */; };
 		AA00B0BA5E55F10000000004 /* PomodoroPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F10000000003 /* PomodoroPanelView.swift */; };
 		AA00B0BA5E55F20000000002 /* SoundPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000001 /* SoundPicker.swift */; };
 		AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */; };
@@ -255,6 +256,7 @@
 		147163972C5D35B70068B555 /* MusicVisualizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicVisualizer.swift; sourceTree = "<group>"; };
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F10000000001 /* PomodoroManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroManager.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F10000000011 /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F10000000003 /* PomodoroPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroPanelView.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F20000000001 /* SoundPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundPicker.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HourlyChimeManager.swift; sourceTree = "<group>"; };
@@ -534,6 +536,7 @@
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
 				147163992C5D35FF0068B555 /* MusicManager.swift */,
 				AA00B0BA5E55F10000000001 /* PomodoroManager.swift */,
+				AA00B0BA5E55F10000000011 /* ClipboardManager.swift */,
 				AA00B0BA5E55F20000000003 /* HourlyChimeManager.swift */,
 				AA00B0BA5E55F30000000001 /* WeatherManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
@@ -986,6 +989,7 @@
 				149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */,
 				1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */,
 				AA00B0BA5E55F10000000002 /* PomodoroManager.swift in Sources */,
+				AA00B0BA5E55F10000000010 /* ClipboardManager.swift in Sources */,
 				AA00B0BA5E55F10000000004 /* PomodoroPanelView.swift in Sources */,
 				AA00B0BA5E55F20000000002 /* SoundPicker.swift in Sources */,
 				AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */,

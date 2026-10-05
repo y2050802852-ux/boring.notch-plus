@@ -54,6 +54,27 @@ struct BoringHeader: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
+                    if Defaults[.clipboardHistoryEnabled] {
+                        Button(action: {
+                            withAnimation(.smooth) {
+                                coordinator.currentView = .clipboard
+                            }
+                        }) {
+                            Capsule()
+                                .fill(.black)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "doc.on.clipboard")
+                                        .foregroundColor(
+                                            coordinator.currentView == .clipboard
+                                                ? Color.effectiveAccent : .white)
+                                        .padding()
+                                        .imageScale(.medium)
+                                }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Clipboard history")
+                    }
                     if Defaults[.settingsIconInNotch] {
                         Button(action: {
                             SettingsWindowController.shared.showWindow()

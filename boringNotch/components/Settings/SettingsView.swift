@@ -60,6 +60,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Notifications") {
                     Label("Notifications", systemImage: "bell.badge")
                 }
+                NavigationLink(value: "Clipboard") {
+                    Label("Clipboard", systemImage: "doc.on.clipboard")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -100,6 +103,8 @@ struct SettingsView: View {
                     Shelf()
                 case "Notifications":
                     NotificationSettings()
+                case "Clipboard":
+                    ClipboardSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":
@@ -783,6 +788,43 @@ struct NotificationSettings: View {
         guard !name.isEmpty, !notificationMutedApps.contains(name) else { return }
         notificationMutedApps.append(name)
         newMutedApp = ""
+    }
+}
+
+struct ClipboardSettings: View {
+    @Default(.clipboardHistoryEnabled) var clipboardHistoryEnabled: Bool
+    @Default(.clipboardHistoryLimit) var clipboardHistoryLimit: Int
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Enable clipboard history", isOn: $clipboardHistoryEnabled)
+                    .onChange(of: clipboardHistoryEnabled) {
+                        ClipboardManager.shared.updateRunning()
+                    }
+                Stepper(value: $clipboardHistoryLimit, in: 10...200, step: 10) {
+                    HStack {
+                        Text("History size")
+                        Spacer()
+                        Text("\(clipboardHistoryLimit) items")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(!clipboardHistoryEnabled)
+                Button("Clear now") {
+                    ClipboardManager.shared.clearAll()
+                }
+                .disabled(!clipboardHistoryEnabled)
+            } header: {
+                Text("Clipboard")
+            } footer: {
+                Text("Text and images you copy are captured automatically. Copies flagged as concealed (e.g. by password managers) are never recorded. Click an entry in the notch to copy it back.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accentColor(.effectiveAccent)
+        .navigationTitle("Clipboard")
     }
 }
 
