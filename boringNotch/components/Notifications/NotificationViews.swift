@@ -184,7 +184,8 @@ struct NotificationSneakPeekView: View {
                     .foregroundStyle(.gray)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.top, 0)
+            .padding(.bottom, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
