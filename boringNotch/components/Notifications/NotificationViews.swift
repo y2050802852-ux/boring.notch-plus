@@ -100,8 +100,11 @@ enum NotificationAppIcon {
 /// transcribed — the notch expands downward to reveal it.
 struct NotificationSneakPeekView: View {
     let record: NotificationRecord
+    /// The row's final width — needed to compute how many lines the body
+    /// wraps to, which drives the (dynamic) row height.
+    let rowWidth: CGFloat
 
-    /// Long notifications widen the bar up to this width, then wrap the body
+    /// Long notifications widen up to this width, then wrap the body
     /// to a second line instead of stretching across the whole notch window.
     static let maxWidth: CGFloat = 480
 
@@ -109,16 +112,25 @@ struct NotificationSneakPeekView: View {
     /// semibold vs body at 10pt regular), measured with the same system fonts
     /// the row uses so CJK and Latin text both size correctly.
     static func textWidth(for record: NotificationRecord) -> CGFloat {
-        func measured(_ text: String, size: CGFloat, weight: NSFont.Weight) -> CGFloat {
-            (text as NSString).size(
-                withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]
-            ).width
-        }
-        let bodyText = record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)"
-        return max(
+        max(
             measured(record.title, size: 12, weight: .semibold),
-            measured(bodyText, size: 10, weight: .regular)
+            measured(bodyText(for: record), size: 10, weight: .regular)
         )
+    }
+
+    private static func measured(_ text: String, size: CGFloat, weight: NSFont.Weight) -> CGFloat {
+        (text as NSString).size(
+            withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight)]
+        ).width
+    }
+
+    private static func bodyText(for record: NotificationRecord) -> String {
+        record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)"
+    }
+
+    /// Single-line width of the body text alone (10pt regular).
+    static func measuredBodyWidth(for record: NotificationRecord) -> CGFloat {
+        measured(bodyText(for: record), size: 10, weight: .regular)
     }
 
     /// Row width for a record: hugs short notifications at `floor` (the base
@@ -127,6 +139,17 @@ struct NotificationSneakPeekView: View {
         // icon 26 + spacing 10 + time ≈ 42 + horizontal padding 28 + slack 6
         let natural = textWidth(for: record) + 112
         return min(max(natural, floor), max(floor, maxWidth))
+    }
+
+    /// How many lines the body wraps to at the row's final width: short
+    /// notifications fit on one line (thin row), long ones wrap to two
+    /// (taller row) — the height dynamic mirrors the width dynamic.
+    private var bodyLineLimit: Int {
+        let body = Self.bodyText(for: record)
+        guard !body.isEmpty else { return 0 }
+        let textAreaWidth = max(80, rowWidth - 112)
+        let lines = Int(ceil(Self.measuredBodyWidth(for: record) / textAreaWidth))
+        return min(2, max(1, lines))
     }
 
     var body: some View {
@@ -147,10 +170,10 @@ struct NotificationSneakPeekView: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
                     if !record.body.isEmpty {
-                        Text(record.subtitle.isEmpty ? record.body : "\(record.subtitle) — \(record.body)")
+                        Text(Self.bodyText(for: record))
                             .font(.system(size: 10))
                             .foregroundStyle(.gray)
-                            .lineLimit(2)
+                            .lineLimit(bodyLineLimit)
                     }
                 }
 
@@ -161,7 +184,7 @@ struct NotificationSneakPeekView: View {
                     .foregroundStyle(.gray)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -380,9 +380,9 @@ struct ContentView: View {
                       // title and body — nothing hides behind the camera).
                       if !coordinator.expandingView.show, vm.notchState == .closed,
                          let record = notificationInterceptor.displayedNotification, !vm.hideOnClosed {
-                          NotificationSneakPeekView(record: record)
+                          NotificationSneakPeekView(record: record, rowWidth: notificationRowWidth)
                               .frame(width: notificationRowWidth, alignment: .leading)
-                              .padding(.top, 6)
+                              .padding(.top, 2)
                               .transition(.move(edge: .top).combined(with: .opacity))
                       }
 
