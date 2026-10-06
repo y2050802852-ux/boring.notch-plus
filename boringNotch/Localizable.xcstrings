@@ -8259,6 +8259,16 @@
         }
       }
     },
+    "Enable privacy popups" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用隐私弹窗"
+          }
+        }
+      }
+    },
     "Enable shelf" : {
       "localizations" : {
         "ar" : {
@@ -15036,6 +15046,16 @@
         }
       }
     },
+    "Placeholder text" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "替换文案"
+          }
+        }
+      }
+    },
     "Plugged In" : {
       "localizations" : {
         "ar" : {
@@ -15136,6 +15156,16 @@
         }
       }
     },
+    "Pop-ups for these apps keep the title (e.g. the sender) but replace the message body with the placeholder text above. The full content stays available in the notification history." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些应用的通知在弹窗中只显示标题（如发送者），正文替换为上方的文案；完整内容仍保留在通知历史中。"
+          }
+        }
+      }
+    },
     "Preferred display" : {
       "localizations" : {
         "ar" : {
@@ -15232,6 +15262,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Preferred display"
+          }
+        }
+      }
+    },
+    "Privacy popups" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私弹窗"
           }
         }
       }

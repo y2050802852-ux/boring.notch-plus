@@ -182,6 +182,10 @@ extension Defaults.Keys {
     /// Apps whose notifications are intercepted and hidden but never pop the
     /// sneak peek — they are only recorded in the notification history.
     static let notificationMutedApps = Key<[String]>("notificationMutedApps", default: [])
+    // MARK: Privacy popups
+    static let notificationPrivacyEnabled = Key<Bool>("notificationPrivacyEnabled", default: true)
+    static let notificationPrivacyApps = Key<[String]>("notificationPrivacyApps", default: [])
+    static let notificationPrivacyPlaceholder = Key<String>("notificationPrivacyPlaceholder", default: "您收到一条新消息")
     
     // MARK: Clipboard history
     static let clipboardHistoryEnabled = Key<Bool>("clipboardHistoryEnabled", default: true)

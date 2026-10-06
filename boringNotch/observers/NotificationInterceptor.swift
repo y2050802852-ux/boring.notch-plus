@@ -32,6 +32,15 @@ struct NotificationRecord: Identifiable, Equatable {
     /// The sending app's bundle URL, resolved at transcription time so a
     /// click on the notification can activate/open it. Nil when unresolvable.
     let appURL: URL?
+
+    /// Privacy copy: keep the title (e.g. the sender) but replace the body
+    /// with the generic placeholder and drop the subtitle (it often carries
+    /// more content). Only used for the pop-up — history keeps the original.
+    func redactedBody(with placeholder: String) -> NotificationRecord {
+        NotificationRecord(
+            appName: appName, title: title, subtitle: "",
+            body: placeholder, date: date, appURL: appURL)
+    }
 }
 
 @MainActor
@@ -366,6 +375,19 @@ final class NotificationInterceptor: ObservableObject {
         Defaults[.notificationMutedApps].contains(appName)
     }
 
+    /// Privacy apps pop the sneak peek with a redacted body (title kept,
+    /// generic placeholder instead of the message content) — the history
+    /// still stores the full content.
+    static func isPrivate(_ appName: String) -> Bool {
+        guard Defaults[.notificationPrivacyEnabled] else { return false }
+        return Defaults[.notificationPrivacyApps].contains(appName)
+    }
+
+    static func placeholderText() -> String {
+        let text = Defaults[.notificationPrivacyPlaceholder].trimmingCharacters(in: .whitespaces)
+        return text.isEmpty ? "您收到一条新消息" : text
+    }
+
     private func recordInHistory(_ record: NotificationRecord) {
         recentNotifications.insert(record, at: 0)
         let limit = max(5, Defaults[.notificationHistoryLimit])
@@ -376,8 +398,15 @@ final class NotificationInterceptor: ObservableObject {
 
     private func display(_ record: NotificationRecord) {
         recordInHistory(record)
+        // Privacy apps: the pop-up renders a redacted copy (title kept, body
+        // replaced by the placeholder) — the history above keeps the original.
+        let privateApp = Self.isPrivate(record.appName)
+        Self.debugLog("display: app=\(record.appName) private=\(privateApp) list=\(Defaults[.notificationPrivacyApps])")
+        let displayRecord = privateApp
+            ? record.redactedBody(with: Self.placeholderText())
+            : record
         withAnimation(.smooth(duration: 0.3)) {
-            displayedNotification = record
+            displayedNotification = displayRecord
         }
         hideWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in

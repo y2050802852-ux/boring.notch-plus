@@ -669,6 +669,10 @@ struct NotificationSettings: View {
     @Default(.notificationDisplayDuration) var notificationDisplayDuration: Double
     @Default(.notificationMutedApps) var notificationMutedApps: [String]
     @State private var newMutedApp: String = ""
+    @Default(.notificationPrivacyEnabled) var notificationPrivacyEnabled: Bool
+    @Default(.notificationPrivacyApps) var notificationPrivacyApps: [String]
+    @Default(.notificationPrivacyPlaceholder) var notificationPrivacyPlaceholder: String
+    @State private var newPrivacyApp: String = ""
     @State private var accessibilityAuthorized = false
 
     var body: some View {
@@ -738,6 +742,46 @@ struct NotificationSettings: View {
             }
 
             Section {
+                Toggle("Enable privacy popups", isOn: $notificationPrivacyEnabled)
+                TextField("Placeholder text", text: $notificationPrivacyPlaceholder)
+                    .disabled(!notificationPrivacyEnabled)
+                HStack {
+                    TextField("Add an app name", text: $newPrivacyApp)
+                        .disabled(!notificationPrivacyEnabled)
+                        .onSubmit(addPrivacyApp)
+                    Button("Add", action: addPrivacyApp)
+                        .disabled(
+                            !notificationPrivacyEnabled
+                                || newPrivacyApp.trimmingCharacters(in: .whitespaces).isEmpty
+                                || notificationPrivacyApps.contains(newPrivacyApp.trimmingCharacters(in: .whitespaces))
+                        )
+                }
+                .disabled(!notificationPrivacyEnabled)
+                ForEach(notificationPrivacyApps, id: \.self) { app in
+                    HStack {
+                        Image(systemName: "eye.slash")
+                            .foregroundStyle(.secondary)
+                        Text(app)
+                        Spacer()
+                        Button {
+                            notificationPrivacyApps.removeAll { $0 == app }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Remove")
+                    }
+                }
+            } header: {
+                Text("Privacy popups")
+            } footer: {
+                Text("Pop-ups for these apps keep the title (e.g. the sender) but replace the message body with the placeholder text above. The full content stays available in the notification history.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 HStack {
                     TextField("Add an app name", text: $newMutedApp)
                         .onSubmit(addMutedApp)
@@ -788,6 +832,13 @@ struct NotificationSettings: View {
         guard !name.isEmpty, !notificationMutedApps.contains(name) else { return }
         notificationMutedApps.append(name)
         newMutedApp = ""
+    }
+
+    private func addPrivacyApp() {
+        let name = newPrivacyApp.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, !notificationPrivacyApps.contains(name) else { return }
+        notificationPrivacyApps.append(name)
+        newPrivacyApp = ""
     }
 }
 
