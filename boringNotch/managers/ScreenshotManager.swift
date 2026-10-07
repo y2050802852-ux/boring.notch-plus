@@ -102,17 +102,17 @@ final class ScreenshotManager: ObservableObject {
         }
     }
 
-    /// Arrow by default; resize cursors near the edge handles; pointing hand
+    /// Arrow by default; crosshair near the corner handles; pointing hand
     /// over the ✓/✗ buttons.
     func updateCursor(for viewPoint: CGPoint) {
         guard adjusting else {
             NSCursor.arrow.set()
             return
         }
-        for handle in EdgeHandle.allCases {
+        for handle in CornerHandle.allCases {
             let p = handle.point(in: rect)
             if abs(viewPoint.x - p.x) <= 14, abs(viewPoint.y - p.y) <= 14 {
-                handle.cursor.set()
+                NSCursor.crosshair.set()
                 return
             }
         }
