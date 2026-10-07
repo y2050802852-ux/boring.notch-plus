@@ -18,6 +18,19 @@ import SwiftUI
 final class ScreenshotManager: ObservableObject {
     static let shared = ScreenshotManager()
 
+    static func debugLog(_ message: String) {
+        let path = FileManager.default.temporaryDirectory
+            .appendingPathComponent("boringNotch_screenshot.log").path
+        let line = "\(Date()) \(message)\n"
+        if let handle = FileHandle(forWritingAtPath: path) {
+            defer { try? handle.close() }
+            handle.seekToEndOfFile()
+            if let data = line.data(using: .utf8) { handle.write(data) }
+        } else {
+            try? line.write(toFile: path, atomically: true, encoding: .utf8)
+        }
+    }
+
     @Published var rect: CGRect = .zero
     @Published var adjusting = false
 
@@ -29,6 +42,7 @@ final class ScreenshotManager: ObservableObject {
     private var overlayID: CGWindowID = 0
 
     func beginCapture() {
+        Self.debugLog("beginCapture preflight=\(CGPreflightScreenCaptureAccess())")
         guard panel == nil else { return }
         // Screen recording permission: without it the capture would silently
         // produce a wallpaper-only image — request access instead.
@@ -78,20 +92,24 @@ final class ScreenshotManager: ObservableObject {
 
     // MARK: Gesture callbacks (from the overlay view)
 
-    func dragStarted(at point: CGPoint) {
-        dragStart = point
-        adjusting = false
-        rect = CGRect(origin: point, size: .zero)
-    }
-
-    func dragChanged(to point: CGPoint) {
-        guard let start = dragStart else { return }
+    /// Single entry point for the selecting-phase drag: the first callback
+    /// records the corner (events may coalesce — never assume a zero-translation
+    /// first event), later ones grow the rect.
+    func dragUpdated(to point: CGPoint) {
+        Self.debugLog("dragUpdated \(point) start=\(dragStart.map { String(describing: $0) } ?? "nil")")
+        guard let start = dragStart else {
+            dragStart = point
+            adjusting = false
+            rect = CGRect(origin: point, size: .zero)
+            return
+        }
         rect = CGRect(
             x: min(start.x, point.x), y: min(start.y, point.y),
             width: abs(point.x - start.x), height: abs(point.y - start.y))
     }
 
     func dragEnded() {
+        Self.debugLog("dragEnded rect=\(rect)")
         dragStart = nil
         // A click without a meaningful drag is not a selection — abort.
         if rect.width < 10 || rect.height < 10 {
@@ -222,20 +240,44 @@ struct ScreenshotOverlayView: View {
 
     var body: some View {
         ZStack {
-            // Dimming with a transparent hole at the selection: four bands
-            // around the rect.
+            // Dimming with a transparent hole at the selection. VISUAL ONLY —
+            // gestures never attach to the masked view (the mask breaks
+            // SwiftUI hit-testing and swallows every mouse event).
             Color.black.opacity(0.35)
                 .inverseMask(selectionHole)
                 .ignoresSafeArea()
-                .contentShape(Rectangle())
-                .gesture(selectDragGesture)
 
             selectionBorder
+
+            // Full-screen interaction layer ABOVE the dimming: receives all
+            // mouse events deterministically (no mask in its hit path).
+            Color.clear
+                .contentShape(Rectangle())
+                .gesture(interactionGesture)
+                .onTapGesture(count: 2) {
+                    if manager.adjusting { manager.captureSelection() }
+                }
 
             if manager.adjusting {
                 selectionHandles
             }
         }
+    }
+
+    private var interactionGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if manager.adjusting {
+                    // Adjusting: dragging inside the selection moves it.
+                    guard manager.rect.contains(value.startLocation) else { return }
+                    manager.selectionDragged(translation: value.translation)
+                } else {
+                    manager.dragUpdated(to: value.location)
+                }
+            }
+            .onEnded { _ in
+                if !manager.adjusting { manager.dragEnded() }
+            }
     }
 
     private var selectionHole: some View {
@@ -252,13 +294,6 @@ struct ScreenshotOverlayView: View {
             )
             .frame(width: max(0, manager.rect.width), height: max(0, manager.rect.height))
             .position(x: manager.rect.midX, y: manager.rect.midY)
-            .contentShape(Rectangle())
-            .gesture(manager.adjusting ? moveGesture : nil)
-            .onTapGesture(count: 2) {
-                if manager.adjusting { manager.captureSelection() }
-            }
-
-            // Size badge while adjusting, PPT-style.
             .overlay(alignment: .bottom) {
                 if manager.adjusting {
                     Text(manager.imageWidthLabel())
@@ -289,25 +324,6 @@ struct ScreenshotOverlayView: View {
                         }
                 )
         }
-    }
-
-    private var selectDragGesture: some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                if value.translation == .zero {
-                    manager.dragStarted(at: value.location)
-                } else {
-                    manager.dragChanged(to: value.location)
-                }
-            }
-            .onEnded { _ in manager.dragEnded() }
-    }
-
-    private var moveGesture: some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                manager.selectionDragged(translation: value.translation)
-            }
     }
 }
 
