@@ -42,7 +42,7 @@ final class ClipboardManager: ObservableObject {
     private let maxTextLength = 500_000
     private let maxImageBytes = 25 * 1024 * 1024
 
-    private static var storeDirectory: URL {
+    static var storeDirectory: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         return base.appendingPathComponent("boringNotch/clipboard", isDirectory: true)
@@ -126,7 +126,19 @@ final class ClipboardManager: ObservableObject {
         }
     }
 
-    private func add(_ item: ClipboardItem) {
+    /// Files an already-stored screenshot image into the history.
+    func recordImageFile(_ file: String) {
+        add(ClipboardItem(
+            id: UUID(), kind: .image, text: nil, imageFile: file, date: Date()))
+    }
+
+    /// Ignores the next pasteboard change — used when we write the
+    /// pasteboard ourselves (screenshots) so the poll does not double-file.
+    func suppressNextCapture() {
+        lastChangeCount = NSPasteboard.general.changeCount
+    }
+
+    func add(_ item: ClipboardItem) {
         // Same content recopied: move to top with a fresh date instead of
         // duplicating.
         if let index = items.firstIndex(where: {

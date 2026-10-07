@@ -4,9 +4,11 @@
 //
 //  1.1.5 region screenshot: a global shortcut dims the screen under the
 //  mouse, the user drags out a selection, then fine-tunes it with four edge
-//  handles (PPT-style) and captures with Enter/double-click (ESC cancels).
-//  The PNG is saved to the Desktop, put on the pasteboard — the clipboard
-//  history polling then picks it up automatically.
+//  handles (PPT-style) and confirms with the ✓/✗ buttons (ESC cancels).
+//  The PNG lands in the clipboard-history store, goes on the pasteboard as
+//  BOTH a file URL and image data — so ⌘V pastes a real file into any
+//  Finder folder and the image into chat apps — and the clipboard history
+//  records it.
 //
 
 import AppKit
@@ -35,9 +37,10 @@ final class ScreenshotManager: ObservableObject {
     @Published var adjusting = false
 
     private var panel: CapturePanel?
-    private var screenFrame: CGRect = .zero
+    var screenFrame: CGRect = .zero
     private var keyMonitor: Any?
     private var dragStart: CGPoint?
+    private var moveOriginRect: CGRect?
 
     private var overlayID: CGWindowID = 0
 
@@ -77,16 +80,11 @@ final class ScreenshotManager: ObservableObject {
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.panel != nil else { return event }
-            switch event.keyCode {
-            case 36, 76: // return / keypad enter
-                if self.adjusting { self.captureSelection() }
-                return nil
-            case 53: // escape
+            if event.keyCode == 53 { // escape
                 self.closeOverlay()
                 return nil
-            default:
-                return event
             }
+            return event
         }
     }
 
@@ -96,7 +94,6 @@ final class ScreenshotManager: ObservableObject {
     /// records the corner (events may coalesce — never assume a zero-translation
     /// first event), later ones grow the rect.
     func dragUpdated(to point: CGPoint) {
-        Self.debugLog("dragUpdated \(point) start=\(dragStart.map { String(describing: $0) } ?? "nil")")
         guard let start = dragStart else {
             dragStart = point
             adjusting = false
@@ -109,7 +106,6 @@ final class ScreenshotManager: ObservableObject {
     }
 
     func dragEnded() {
-        Self.debugLog("dragEnded rect=\(rect)")
         dragStart = nil
         // A click without a meaningful drag is not a selection — abort.
         if rect.width < 10 || rect.height < 10 {
@@ -146,8 +142,16 @@ final class ScreenshotManager: ObservableObject {
     }
 
     func selectionDragged(translation: CGSize) {
-        guard adjusting else { return }
-        rect = rect.offsetBy(dx: translation.width, dy: translation.height)
+        // Snapshot the rect at drag start — applying the cumulative
+        // translation to the already-moved rect compounds exponentially and
+        // makes the frame fly away.
+        if moveOriginRect == nil { moveOriginRect = rect }
+        guard let origin = moveOriginRect else { return }
+        rect = origin.offsetBy(dx: translation.width, dy: translation.height)
+    }
+
+    func moveEnded() {
+        moveOriginRect = nil
     }
 
     func captureSelection() {
@@ -168,7 +172,7 @@ final class ScreenshotManager: ObservableObject {
         rect = .zero
     }
 
-    // MARK: Capture & save
+    // MARK: Capture & store
 
     private func capture(rect: CGRect, screenFrame: CGRect) {
         // The view's top-left-origin rect maps to CG's global top-left space
@@ -188,21 +192,43 @@ final class ScreenshotManager: ObservableObject {
         let rep = NSBitmapImageRep(cgImage: image)
         guard let png = rep.representation(using: .png, properties: [:]) else { return }
 
+        // Store the PNG in the clipboard store under a friendly name —
+        // pasting into a Finder folder copies this file out.
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let url = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Desktop/截图-\(formatter.string(from: Date())).png")
-        try? png.write(to: url)
+        let file = "截图-\(formatter.string(from: Date())).png"
+        let storeURL = ClipboardManager.storeDirectory
+            .appendingPathComponent(file)
+        do {
+            try FileManager.default.createDirectory(
+                at: ClipboardManager.storeDirectory, withIntermediateDirectories: true)
+            try png.write(to: storeURL)
+        } catch {
+            Self.debugLog("screenshot save failed: \(error.localizedDescription)")
+            return
+        }
+        ClipboardManager.shared.recordImageFile(file)
 
+        // Pasteboard carries BOTH a file reference and the image data:
+        // ⌘V in a Finder folder pastes the file; ⌘V in a chat app pastes
+        // the image.
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
+        pasteboard.writeObjects([storeURL as NSURL])
         pasteboard.setData(png, forType: .png)
-        // The clipboard history polling picks this pasteboard change up and
-        // files the screenshot automatically.
+        ClipboardManager.shared.suppressNextCapture()
     }
 
     func imageWidthLabel() -> String {
         "\(Int(rect.width)) × \(Int(rect.height))"
+    }
+
+    /// Confirms/cancels button pair position: the selection's bottom-right
+    /// corner, clamped to the screen.
+    func confirmButtonsPosition(for rect: CGRect) -> CGPoint {
+        CGPoint(
+            x: min(max(rect.maxX - 8, 80), screenFrame.maxX - 90),
+            y: min(rect.maxY + 30, screenFrame.maxY - 40))
     }
 }
 
@@ -254,12 +280,10 @@ struct ScreenshotOverlayView: View {
             Color.clear
                 .contentShape(Rectangle())
                 .gesture(interactionGesture)
-                .onTapGesture(count: 2) {
-                    if manager.adjusting { manager.captureSelection() }
-                }
 
             if manager.adjusting {
                 selectionHandles
+                confirmButtons
             }
         }
     }
@@ -276,7 +300,8 @@ struct ScreenshotOverlayView: View {
                 }
             }
             .onEnded { _ in
-                if !manager.adjusting { manager.dragEnded() }
+                if manager.adjusting { manager.moveEnded() }
+                else { manager.dragEnded() }
             }
     }
 
@@ -308,22 +333,72 @@ struct ScreenshotOverlayView: View {
             }
     }
 
+    /// ✓ capture / ✗ cancel, at the selection's bottom-right corner.
+    private var confirmButtons: some View {
+        let position = manager.confirmButtonsPosition(for: manager.rect)
+        return HStack(spacing: 12) {
+            Button {
+                manager.captureSelection()
+            } label: {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(Color.accentColor))
+            }
+            .buttonStyle(.plain)
+            .help("Capture")
+
+            Button {
+                manager.closeOverlay()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(Color.gray.opacity(0.9)))
+            }
+            .buttonStyle(.plain)
+            .help("Cancel")
+        }
+        .position(position)
+    }
+
     private var selectionHandles: some View {
         ForEach(Array(EdgeHandle.allCases.enumerated()), id: \.element) { _, handle in
-            Circle()
-                .fill(Color.white)
-                .frame(width: 12, height: 12)
-                .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
-                .shadow(radius: 1)
-                .position(handle.point(in: manager.rect))
-                .cursor(handle.cursor)
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            manager.handleDragged(handle: handle, to: value.location)
-                        }
-                )
+            HandleView(handle: handle, manager: manager)
         }
+    }
+}
+
+private struct HandleView: View {
+    let handle: EdgeHandle
+    @ObservedObject var manager: ScreenshotManager
+    @State private var hovering = false
+
+    var body: some View {
+        Circle()
+            .fill(Color.white)
+            .frame(width: 12, height: 12)
+            .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
+            .shadow(radius: 1)
+            .position(handle.point(in: manager.rect))
+            .onHover { hovering in
+                self.hovering = hovering
+                // Push/pop in pairs — a lone push leaks the cursor to the
+                // whole screen (the reported left-right-everywhere bug).
+                if hovering {
+                    handle.cursor.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        manager.handleDragged(handle: handle, to: value.location)
+                    }
+            )
     }
 }
 
@@ -336,10 +411,5 @@ extension View {
         self.mask {
             Rectangle().overlay(mask.foregroundStyle(.white).blendMode(.destinationOut))
         }
-    }
-
-    @ViewBuilder
-    func cursor(_ cursor: NSCursor) -> some View {
-        self.onHover { _ in cursor.push() }
     }
 }
