@@ -55,6 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var viewModels: [String: BoringViewModel] = [:] // UUID -> BoringViewModel
     var window: NSWindow?
     let vm: BoringViewModel = .init()
+    let screenshotManager = ScreenshotManager.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     var quickShareService = QuickShareService.shared
     var whatsNewWindow: NSWindow?
@@ -491,6 +492,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         viewModel.open()
                     }
                 }
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .captureScreenshot) { [weak self] in
+            Task { @MainActor in
+                self?.screenshotManager.beginCapture()
             }
         }
 

@@ -3744,6 +3744,16 @@
         }
       }
     },
+    "Capture Screenshot:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截取屏幕："
+          }
+        }
+      }
+    },
     "Change media with horizontal gestures" : {
       "localizations" : {
         "ar" : {
@@ -6631,6 +6641,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "描述"
+          }
+        }
+      }
+    },
+    "Dims the screen under the mouse: drag out a selection, fine-tune it with the edge handles, then press Enter or double-click to capture (ESC cancels). Saves to the Desktop and the clipboard history. Screen Recording permission is required on first use." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在鼠标所在屏幕暗化遮罩：拖拽画框，拖动边框上的手柄微调，按 Enter 或双击选区捕获（ESC 取消）。截图保存到桌面并进入剪贴板历史；首次使用需授予屏幕录制权限。"
           }
         }
       }
@@ -16894,6 +16914,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "运行中"
+          }
+        }
+      }
+    },
+    "Screenshot" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截屏"
           }
         }
       }

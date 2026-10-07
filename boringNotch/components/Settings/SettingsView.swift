@@ -2051,6 +2051,15 @@ struct Shortcuts: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Capture Screenshot:", name: .captureScreenshot)
+            } header: {
+                Text("Screenshot")
+            } footer: {
+                Text("Dims the screen under the mouse: drag out a selection, fine-tune it with the edge handles, then press Enter or double-click to capture (ESC cancels). Saves to the Desktop and the clipboard history. Screen Recording permission is required on first use.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")
