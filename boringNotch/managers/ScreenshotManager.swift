@@ -39,6 +39,7 @@ final class ScreenshotManager: ObservableObject {
     private var panel: CapturePanel?
     var screenFrame: CGRect = .zero
     private var keyMonitor: Any?
+    private var mouseMonitor: Any?
     private var dragStart: CGPoint?
     private var moveOriginRect: CGRect?
 
@@ -86,6 +87,41 @@ final class ScreenshotManager: ObservableObject {
             }
             return event
         }
+        // Cursor: set deterministically from the pointer position on every
+        // mouse event — push/pop stacks corrupt when handles move under a
+        // moving pointer (the reported stuck left-right arrows).
+        mouseMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.mouseMoved, .leftMouseDown, .leftMouseDragged, .leftMouseUp]
+        ) { [weak self] event in
+            guard let self, self.panel != nil else { return event }
+            let height = self.panel?.frame.height ?? 0
+            // Window coords (bottom-left) → view coords (top-left).
+            self.updateCursor(
+                for: CGPoint(x: event.locationInWindow.x, y: height - event.locationInWindow.y))
+            return event
+        }
+    }
+
+    /// Arrow by default; resize cursors near the edge handles; pointing hand
+    /// over the ✓/✗ buttons.
+    func updateCursor(for viewPoint: CGPoint) {
+        guard adjusting else {
+            NSCursor.arrow.set()
+            return
+        }
+        for handle in EdgeHandle.allCases {
+            let p = handle.point(in: rect)
+            if abs(viewPoint.x - p.x) <= 14, abs(viewPoint.y - p.y) <= 14 {
+                handle.cursor.set()
+                return
+            }
+        }
+        let buttons = confirmButtonsPosition(for: rect)
+        if abs(viewPoint.x - buttons.x) <= 44, abs(viewPoint.y - buttons.y) <= 22 {
+            NSCursor.pointingHand.set()
+            return
+        }
+        NSCursor.arrow.set()
     }
 
     // MARK: Gesture callbacks (from the overlay view)
@@ -165,6 +201,10 @@ final class ScreenshotManager: ObservableObject {
         if let monitor = keyMonitor {
             NSEvent.removeMonitor(monitor)
             keyMonitor = nil
+        }
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
         }
         panel?.orderOut(nil)
         panel = nil
@@ -374,7 +414,6 @@ struct ScreenshotOverlayView: View {
 private struct HandleView: View {
     let handle: EdgeHandle
     @ObservedObject var manager: ScreenshotManager
-    @State private var hovering = false
 
     var body: some View {
         Circle()
@@ -383,16 +422,6 @@ private struct HandleView: View {
             .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
             .shadow(radius: 1)
             .position(handle.point(in: manager.rect))
-            .onHover { hovering in
-                self.hovering = hovering
-                // Push/pop in pairs — a lone push leaks the cursor to the
-                // whole screen (the reported left-right-everywhere bug).
-                if hovering {
-                    handle.cursor.push()
-                } else {
-                    NSCursor.pop()
-                }
-            }
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
