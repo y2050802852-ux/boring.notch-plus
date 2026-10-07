@@ -153,28 +153,21 @@ final class ScreenshotManager: ObservableObject {
         }
     }
 
-    func handleDragged(handle: EdgeHandle, to point: CGPoint) {
-        var r = rect
+    func handleDragged(handle: CornerHandle, to point: CGPoint) {
+        // The opposite corner anchors; the dragged corner follows the
+        // pointer — width and height adjust together. Dragging across the
+        // anchor flips the rect; the minimum size keeps it from collapsing.
+        let anchor = handle.anchor(in: rect)
         let minimum: CGFloat = 10
-        switch handle {
-        case .top:
-            r = CGRect(
-                x: r.minX, y: min(point.y, r.maxY - minimum),
-                width: r.width, height: max(minimum, r.maxY - point.y))
-        case .bottom:
-            r = CGRect(
-                x: r.minX, y: r.minY,
-                width: r.width, height: max(minimum, point.y - r.minY))
-        case .leading:
-            r = CGRect(
-                x: min(point.x, r.maxX - minimum), y: r.minY,
-                width: max(minimum, r.maxX - point.x), height: r.height)
-        case .trailing:
-            r = CGRect(
-                x: r.minX, y: r.minY,
-                width: max(minimum, point.x - r.minX), height: r.height)
-        }
-        rect = r
+        let x = point.x >= anchor.x
+            ? max(anchor.x + minimum, point.x)
+            : min(anchor.x - minimum, point.x)
+        let y = point.y >= anchor.y
+            ? max(anchor.y + minimum, point.y)
+            : min(anchor.y - minimum, point.y)
+        rect = CGRect(
+            x: min(anchor.x, x), y: min(anchor.y, y),
+            width: abs(x - anchor.x), height: abs(y - anchor.y))
     }
 
     func selectionDragged(translation: CGSize) {
@@ -278,23 +271,25 @@ private final class CapturePanel: NSPanel {
 
 // MARK: - Handles
 
-enum EdgeHandle: CaseIterable {
-    case top, bottom, leading, trailing
+enum CornerHandle: CaseIterable {
+    case topLeft, topTrailing, bottomLeading, bottomTrailing
 
-    /// Midpoint of this edge inside `rect`.
     func point(in rect: CGRect) -> CGPoint {
         switch self {
-        case .top: return CGPoint(x: rect.midX, y: rect.minY)
-        case .bottom: return CGPoint(x: rect.midX, y: rect.maxY)
-        case .leading: return CGPoint(x: rect.minX, y: rect.midY)
-        case .trailing: return CGPoint(x: rect.maxX, y: rect.midY)
+        case .topLeft: return CGPoint(x: rect.minX, y: rect.minY)
+        case .topTrailing: return CGPoint(x: rect.maxX, y: rect.minY)
+        case .bottomLeading: return CGPoint(x: rect.minX, y: rect.maxY)
+        case .bottomTrailing: return CGPoint(x: rect.maxX, y: rect.maxY)
         }
     }
 
-    var cursor: NSCursor {
+    /// The corner that stays fixed while this handle drags.
+    func anchor(in rect: CGRect) -> CGPoint {
         switch self {
-        case .top, .bottom: return .resizeUpDown
-        case .leading, .trailing: return .resizeLeftRight
+        case .topLeft: return CGPoint(x: rect.maxX, y: rect.maxY)
+        case .topTrailing: return CGPoint(x: rect.minX, y: rect.maxY)
+        case .bottomLeading: return CGPoint(x: rect.maxX, y: rect.minY)
+        case .bottomTrailing: return CGPoint(x: rect.minX, y: rect.minY)
         }
     }
 }
@@ -405,23 +400,27 @@ struct ScreenshotOverlayView: View {
     }
 
     private var selectionHandles: some View {
-        ForEach(Array(EdgeHandle.allCases.enumerated()), id: \.element) { _, handle in
-            HandleView(handle: handle, manager: manager)
+        ForEach(Array(CornerHandle.allCases.enumerated()), id: \.element) { _, handle in
+            CornerView(handle: handle, manager: manager)
         }
     }
 }
 
-private struct HandleView: View {
-    let handle: EdgeHandle
+private struct CornerView: View {
+    let handle: CornerHandle
     @ObservedObject var manager: ScreenshotManager
 
     var body: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: 2)
             .fill(Color.white)
-            .frame(width: 12, height: 12)
-            .overlay(Circle().strokeBorder(Color.accentColor, lineWidth: 2))
+            .frame(width: 14, height: 14)
+            .overlay(RoundedRectangle(cornerRadius: 2).strokeBorder(Color.accentColor, lineWidth: 2))
             .shadow(radius: 1)
             .position(handle.point(in: manager.rect))
+            .onHover { hovering in
+                NSCursor.crosshair.set()
+                if !hovering { NSCursor.arrow.set() }
+            }
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
