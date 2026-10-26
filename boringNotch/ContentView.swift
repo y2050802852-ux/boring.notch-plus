@@ -619,7 +619,10 @@ struct ContentView: View {
                 .contentShape(Rectangle())
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], isTargeted: $vm.dragDetectorTargeting) { providers in
             vm.dropEvent = true
-            ShelfStateViewModel.shared.load(providers)
+            ShelfStateViewModel.shared.load(providers) { added in
+                guard !added.isEmpty else { return }
+                revealShelfAfterSuccessfulDrop(vm: vm)
+            }
             return true
         }
         } else {
@@ -798,11 +801,27 @@ struct GeneralDropTargetDelegate: DropDelegate {
         // closed notch, or open on the shelf tab. Dropping on the home tab
         // keeps the previous behavior (cancelled).
         if vm.notchState == .closed || BoringViewCoordinator.shared.currentView == .shelf {
-            ShelfStateViewModel.shared.load(providers)
+            vm.dropEvent = true
+            ShelfStateViewModel.shared.load(providers) { added in
+                guard !added.isEmpty else { return }
+                revealShelfAfterSuccessfulDrop(vm: vm)
+            }
             return true
         }
         return false
     }
+}
+
+/// A drop the app accepted must be visible: when the notch was closed,
+/// open it on the shelf tab so the user sees the item land instead of
+/// wondering whether anything happened.
+@MainActor
+func revealShelfAfterSuccessfulDrop(vm: BoringViewModel) {
+    guard vm.notchState == .closed else { return }
+    withAnimation(.smooth) {
+        BoringViewCoordinator.shared.currentView = .shelf
+    }
+    vm.open()
 }
 
 #Preview {

@@ -88,14 +88,25 @@ final class ShelfStateViewModel: ObservableObject {
     }
 
 
-    func load(_ providers: [NSItemProvider]) {
+    /// - Parameter onCompleted: called on the main thread with the items
+    ///   actually added (may be empty when every provider failed); lets drop
+    ///   entry points surface success/failure to the user.
+    func load(_ providers: [NSItemProvider], onCompleted: (([ShelfItem]) -> Void)? = nil) {
         guard !providers.isEmpty else { return }
         isLoading = true
+        Logger.log("ShelfDrop: loading \(providers.count) provider(s)", category: .debug)
         Task { [weak self] in
             let dropped = await ShelfDropService.items(from: providers)
             await MainActor.run {
-                self?.add(dropped)
-                self?.isLoading = false
+                guard let self else { return }
+                self.add(dropped)
+                self.isLoading = false
+                if dropped.isEmpty {
+                    Logger.log("ShelfDrop: no items were added from \(providers.count) provider(s)", category: .warning)
+                } else {
+                    Logger.log("ShelfDrop: added \(dropped.count) item(s)", category: .success)
+                }
+                onCompleted?(dropped)
             }
         }
     }

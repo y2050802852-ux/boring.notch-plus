@@ -26,6 +26,19 @@ extension NSScreen {
     @MainActor static func screen(withUUID uuid: String) -> NSScreen? {
         return NSScreenUUIDCache.shared.screen(forUUID: uuid)
     }
+
+    /// The screen macOS marks as the main display in System Settings
+    /// (the one with the menu bar), not the key-window screen that
+    /// `NSScreen.main` reports.
+    @MainActor static var primaryDisplay: NSScreen? {
+        let mainDisplayID = CGMainDisplayID()
+        return NSScreen.screens.first { screen in
+            guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
+                return false
+            }
+            return CGDirectDisplayID(number.uint32Value) == mainDisplayID
+        }
+    }
     
     /// Get UUID to NSScreen mapping for all screens
     @MainActor static var screensByUUID: [String: NSScreen] {

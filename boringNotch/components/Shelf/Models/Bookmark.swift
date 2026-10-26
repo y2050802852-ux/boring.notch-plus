@@ -28,8 +28,15 @@ struct Bookmark: Sendable, Equatable, Codable {
             NSLog("✅ Successfully created bookmark for \(url.path)")
             self.data = bookmark
         } catch {
-            NSLog("❌ Failed to create bookmark for \(url.path): \(error.localizedDescription)")
-            throw error
+            // Security-scoped bookmarks can fail outside the sandbox; a
+            // plain bookmark still pins the path for local items.
+            let plain = try url.bookmarkData(
+                options: [],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            NSLog("⚠️ Security-scoped bookmark failed for \(url.path) (\(error.localizedDescription)); created plain bookmark")
+            self.data = plain
         }
     }
 
@@ -49,6 +56,16 @@ struct Bookmark: Sendable, Equatable, Codable {
             }
             return (url, nil)
         } catch {
+            // Data may have been created without the security-scope option.
+            var unused = false
+            if let url = try? URL(
+                resolvingBookmarkData: data,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &unused
+            ) {
+                return (url, nil)
+            }
             NSLog("❌ Failed to resolve bookmark: \(error.localizedDescription)")
             return (nil, nil)
         }

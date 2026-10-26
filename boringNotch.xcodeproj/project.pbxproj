@@ -149,6 +149,8 @@
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		AA00B0BA5E55F20000000021 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000020 /* L10n.swift */; };
+		AA00B0BA5E55F20000000023 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000022 /* Logger.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -322,6 +324,17 @@
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000020 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000022 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000024 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				AA00B0BA5E55F20000000020 /* L10n.swift */,
+				AA00B0BA5E55F20000000022 /* Logger.swift */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -602,6 +615,7 @@
 				147163B52C5D804B0068B555 /* managers */,
 				1153BD8E2D986B1F00979FB0 /* MediaControllers */,
 				B15063502C63D3F600EBB0E3 /* extensions */,
+				AA00B0BA5E55F20000000024 /* utils */,
 				1471639B2C5D362F0068B555 /* components */,
 				14CEF4152C5CAED300855D72 /* boringNotchApp.swift */,
 				14CEF4172C5CAED300855D72 /* ContentView.swift */,
@@ -997,6 +1011,8 @@
 				AA00B0BA5E55F10000000004 /* PomodoroPanelView.swift in Sources */,
 				AA00B0BA5E55F20000000002 /* SoundPicker.swift in Sources */,
 				AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */,
+				AA00B0BA5E55F20000000021 /* L10n.swift in Sources */,
+				AA00B0BA5E55F20000000023 /* Logger.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,
 				118EBE312E9717DB00D54B5A /* URL+SecurityScoped.swift in Sources */,

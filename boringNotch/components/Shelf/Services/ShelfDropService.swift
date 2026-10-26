@@ -21,49 +21,68 @@ struct ShelfDropService {
 
         return results
     }
-    
+
     private static func processProvider(_ provider: NSItemProvider) async -> ShelfItem? {
+        Logger.log("ShelfDrop: processing provider \(provider.registeredTypeIdentifiers)", category: .debug)
+
         if let actualFileURL = await provider.extractFileURL() {
-            if let bookmark = createBookmark(for: actualFileURL) {
-                return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+            Logger.log("ShelfDrop: file URL extracted: \(actualFileURL.path)", category: .debug)
+            if let item = await fileItem(for: actualFileURL, temporary: false) {
+                return item
             }
-            return nil
+            Logger.log("ShelfDrop: bookmark failed for \(actualFileURL.path); trying fallbacks", category: .warning)
+        } else {
+            Logger.log("ShelfDrop: no file URL representation", category: .debug)
         }
-        
+
         if let url = await provider.extractURL() {
             if url.isFileURL {
-                if let bookmark = createBookmark(for: url) {
-                    return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+                if let item = await fileItem(for: url, temporary: false) {
+                    return item
                 }
+                Logger.log("ShelfDrop: bookmark failed for URL \(url.path); trying fallbacks", category: .warning)
             } else {
                 return await ShelfItem(kind: .link(url: url), isTemporary: false)
             }
-            return nil
+        } else {
+            Logger.log("ShelfDrop: no URL representation", category: .debug)
         }
-        
+
         if let text = await provider.extractText() {
             return await ShelfItem(kind: .text(string: text), isTemporary: false)
         }
-        
+
         if let data = await provider.loadData() {
             if let tempDataURL = await TemporaryFileStorageService.shared.createTempFile(for: .data(data, suggestedName: provider.suggestedName)),
                let bookmark = createBookmark(for: tempDataURL) {
                 return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: true)
             }
-            return nil
+            Logger.log("ShelfDrop: failed to store loaded data (\(data.count) bytes)", category: .error)
         }
-        
+
         if let fileURL = await provider.extractItem() {
-            if let bookmark = createBookmark(for: fileURL) {
-                return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: false)
+            Logger.log("ShelfDrop: generic item extracted: \(fileURL.path)", category: .debug)
+            if let item = await fileItem(for: fileURL, temporary: false) {
+                return item
             }
         }
-        
+
+        Logger.log("ShelfDrop: provider could not be converted to a shelf item", category: .error)
         return nil
     }
-    
+
+    private static func fileItem(for url: URL, temporary: Bool) async -> ShelfItem? {
+        guard let bookmark = createBookmark(for: url) else { return nil }
+        return await ShelfItem(kind: .file(bookmark: bookmark), isTemporary: temporary)
+    }
+
     private static func createBookmark(for url: URL) -> Data? {
-        return (try? Bookmark(url: url))?.data
+        do {
+            return try Bookmark(url: url).data
+        } catch {
+            Logger.log("ShelfDrop: bookmark creation failed for \(url.path): \(error.localizedDescription)", category: .error)
+            return nil
+        }
     }
 }
 
