@@ -162,7 +162,7 @@ final class WeatherManager: ObservableObject {
         if let (data, _) = try? await fetchData(url: URL(string: "https://ipapi.co/json/")!),
            let response = try? JSONDecoder().decode(IPAPICoResponse.self, from: data),
            let latitude = response.latitude, let longitude = response.longitude {
-            return WeatherLocation(latitude: latitude, longitude: longitude, name: response.city ?? "自动定位")
+            return WeatherLocation(latitude: latitude, longitude: longitude, name: response.city ?? L10n.string("Auto-detected location"))
         }
 
         struct IPAPIComResponse: Decodable {
@@ -174,7 +174,7 @@ final class WeatherManager: ObservableObject {
         if let (data, _) = try? await fetchData(url: URL(string: "http://ip-api.com/json/?fields=status,city,lat,lon&lang=zh-CN")!),
            let response = try? JSONDecoder().decode(IPAPIComResponse.self, from: data),
            response.status == "success", let latitude = response.lat, let longitude = response.lon {
-            return WeatherLocation(latitude: latitude, longitude: longitude, name: response.city ?? "自动定位")
+            return WeatherLocation(latitude: latitude, longitude: longitude, name: response.city ?? L10n.string("Auto-detected location"))
         }
 
         return nil

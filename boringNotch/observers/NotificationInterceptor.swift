@@ -334,7 +334,7 @@ final class NotificationInterceptor: ObservableObject {
             appName = String(desc[..<range.lowerBound]).trimmingCharacters(
                 in: CharacterSet(charactersIn: "，、；：,;: \t"))
         }
-        if appName.isEmpty { appName = "通知" }
+        if appName.isEmpty { appName = L10n.string("Notification") }
 
         Self.debugLog("extract: texts=\(texts) appName=\(appName)")
         return NotificationRecord(
@@ -385,7 +385,11 @@ final class NotificationInterceptor: ObservableObject {
 
     static func placeholderText() -> String {
         let text = Defaults[.notificationPrivacyPlaceholder].trimmingCharacters(in: .whitespaces)
-        return text.isEmpty ? "您收到一条新消息" : text
+        // Empty or the pre-1.1.7 built-in default: follow the app language.
+        if text.isEmpty || text == "您收到一条新消息" {
+            return L10n.string("You have a new message")
+        }
+        return text
     }
 
     private func recordInHistory(_ record: NotificationRecord) {

@@ -70,7 +70,9 @@ final class ScreenshotManager: ObservableObject {
         panel.hasShadow = false
         panel.isMovableByWindowBackground = false
         panel.contentView = NSHostingView(
-            rootView: ScreenshotOverlayView(manager: self))
+            rootView: LocalizedRootView {
+                ScreenshotOverlayView(manager: self)
+            })
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.panel = panel
@@ -229,7 +231,7 @@ final class ScreenshotManager: ObservableObject {
         // pasting into a Finder folder copies this file out.
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let file = "截图-\(formatter.string(from: Date())).png"
+        let file = "\(L10n.string("Screenshot"))-\(formatter.string(from: Date())).png"
         let storeURL = ClipboardManager.storeDirectory
             .appendingPathComponent(file)
         do {

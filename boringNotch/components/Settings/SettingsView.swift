@@ -172,6 +172,17 @@ struct GeneralSettings: View {
     var body: some View {
         Form {
             Section {
+                Picker("Language", selection: Binding(
+                    get: { Defaults[.appLanguage] },
+                    set: { newValue in
+                        Defaults[.appLanguage] = newValue
+                        L10n.applyLanguageOverride()
+                    }
+                )) {
+                    ForEach(AppLanguage.allCases) { language in
+                        languageLabel(language).tag(language)
+                    }
+                }
                 Toggle(isOn: Binding(
                     get: { Defaults[.menubarIcon] },
                     set: { Defaults[.menubarIcon] = $0 }
@@ -295,6 +306,15 @@ struct GeneralSettings: View {
             if !openNotchOnHover {
                 enableGestures = true
             }
+        }
+    }
+
+    @ViewBuilder
+    private func languageLabel(_ language: AppLanguage) -> some View {
+        switch language {
+        case .system: Text("Follow System")
+        case .english: Text(verbatim: "English")
+        case .simplifiedChinese: Text(verbatim: "简体中文")
         }
     }
 
@@ -2128,10 +2148,10 @@ struct WeatherLocationPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                TextField("搜索城市（如：杭州）", text: $query)
+                TextField("Search city (e.g. Hangzhou)", text: $query)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit(search)
-                Button("搜索") { search() }
+                Button("Search") { search() }
                     .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || isSearching)
             }
 
@@ -2166,7 +2186,7 @@ struct WeatherLocationPicker: View {
                 currentSource
                 Spacer()
                 if WeatherManager.manualLocation != nil {
-                    Button("恢复自动定位") {
+                    Button("Restore auto-location") {
                         WeatherManager.setManualLocation(nil)
                     }
                 }
@@ -2180,13 +2200,13 @@ struct WeatherLocationPicker: View {
     @ViewBuilder
     private var currentSource: some View {
         if let manual = WeatherManager.manualLocation {
-            Text("手动城市：\(manual.name)")
+            Text("Manual city: \(manual.name)")
         } else if let city = weather.autoDetectedCity {
-            Text("自动定位：\(city)")
+            Text("Auto-detected: \(city)")
         } else if weather.isFetching {
-            Text("自动定位中…")
+            Text("Locating…")
         } else {
-            Text("尚未定位")
+            Text("No location set")
         }
     }
 

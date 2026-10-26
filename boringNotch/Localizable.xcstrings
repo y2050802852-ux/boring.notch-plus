@@ -501,6 +501,22 @@
         }
       }
     },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@，%@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "ar" : {
@@ -697,6 +713,36 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld items" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 项"
+          }
+        }
+      }
+    },
+    "%lld min" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 分钟"
+          }
+        }
+      }
+    },
+    "%lld seconds" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 秒"
           }
         }
       }
@@ -997,6 +1043,46 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "(%@)"
+          }
+        }
+      }
+    },
+    "A beautiful day begins ☀️" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "美好的一天开始啦 ☀️"
+          }
+        }
+      }
+    },
+    "A fresh hour, full of energy ✨" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新的一小时，精神满满 ✨"
+          }
+        }
+      }
+    },
+    "A long break follows every 4 focus sessions. Changes apply to the next phase." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每 4 个专注周期后自动进入长休息。更改将在下一阶段生效。"
+          }
+        }
+      }
+    },
+    "A playful time announcement pops up below the notch for a few seconds. While the notch is hidden or expanded, only the sound plays." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整点时在刘海下方弹出几秒的俏皮报时横幅。刘海隐藏或展开时仅播放声音。"
           }
         }
       }
@@ -1932,6 +2018,16 @@
         }
       }
     },
+    "Afternoon %lld o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下午 %lld 点"
+          }
+        }
+      }
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -2132,7 +2228,26 @@
         }
       }
     },
-    "Always show full event titles" : {},
+    "Always Open With" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终以此方式打开"
+          }
+        }
+      }
+    },
+    "Always show full event titles" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终显示完整日程标题"
+          }
+        }
+      }
+    },
     "Always show tabs" : {
       "localizations" : {
         "ar" : {
@@ -2433,7 +2548,36 @@
         }
       }
     },
-    "Auto-scroll to next event" : {},
+    "Auto-detected location" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动定位"
+          }
+        }
+      }
+    },
+    "Auto-detected: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动定位：%@"
+          }
+        }
+      }
+    },
+    "Auto-scroll to next event" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动滚动到下一个日程"
+          }
+        }
+      }
+    },
     "Automatically check for updates" : {
       "localizations" : {
         "ar" : {
@@ -2730,6 +2874,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "自动切换显示器"
+          }
+        }
+      }
+    },
+    "Background Removal Failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除背景失败"
           }
         }
       }
@@ -3144,6 +3298,16 @@
         }
       }
     },
+    "Behavior" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行为"
+          }
+        }
+      }
+    },
     "Boost your productivity with Clipboard Manager" : {
       "localizations" : {
         "ar" : {
@@ -3340,6 +3504,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Boring Notch"
+          }
+        }
+      }
+    },
+    "Boring Notch Settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boring Notch 设置"
+          }
+        }
+      }
+    },
+    "Break's over — back to work 💪" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息够啦，回来开工 💪"
           }
         }
       }
@@ -4070,6 +4254,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "检查更新…"
+          }
+        }
+      }
+    },
+    "Chime at the top of every hour" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整点报时"
+          }
+        }
+      }
+    },
+    "Chime sound" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报时铃声"
           }
         }
       }
@@ -4934,6 +5138,16 @@
         }
       }
     },
+    "Coffee refill time ☕️" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来杯咖啡续命 ☕️"
+          }
+        }
+      }
+    },
     "Color Presets" : {
       "localizations" : {
         "ar" : {
@@ -5234,6 +5448,26 @@
         }
       }
     },
+    "Compress" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩"
+          }
+        }
+      }
+    },
+    "Compression:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压缩质量："
+          }
+        }
+      }
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -5334,12 +5568,62 @@
         }
       }
     },
+    "Convert" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换"
+          }
+        }
+      }
+    },
+    "Convert Image" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换图片"
+          }
+        }
+      }
+    },
+    "Convert Image…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换图片…"
+          }
+        }
+      }
+    },
     "Copied" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "已复制"
+          }
+        }
+      }
+    },
+    "Copy" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝"
+          }
+        }
+      }
+    },
+    "Copy Path" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝路径"
           }
         }
       }
@@ -5564,6 +5848,16 @@
         }
       }
     },
+    "Create PDF" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建 PDF"
+          }
+        }
+      }
+    },
     "Currently selected: %@" : {
       "localizations" : {
         "ar" : {
@@ -5658,8 +5952,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Currently selected: %@"
+            "state" : "translated",
+            "value" : "当前选择：%@"
           }
         }
       }
@@ -7378,6 +7672,16 @@
         }
       }
     },
+    "Eat well, work well 🍜" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "吃饱了才有力气干活 🍜"
+          }
+        }
+      }
+    },
     "Edit layout" : {
       "localizations" : {
         "ar" : {
@@ -8409,6 +8713,16 @@
         }
       }
     },
+    "Enable:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用："
+          }
+        }
+      }
+    },
     "Enhance your experience with HUDs" : {
       "localizations" : {
         "ar" : {
@@ -8605,6 +8919,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "享受您的闲暇时光！"
+          }
+        }
+      }
+    },
+    "Evening %lld o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "晚上 %lld 点"
+          }
+        }
+      }
+    },
+    "Evening 11 o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "晚上 11 点"
           }
         }
       }
@@ -9020,7 +9354,86 @@
         }
       }
     },
-    "Full screen behavior" : {},
+    "Five minutes of slacking, a whole day of joy 🐟" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摸鱼五分钟，快乐一整天 🐟"
+          }
+        }
+      }
+    },
+    "Focusing 🍅" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专注中 🍅"
+          }
+        }
+      }
+    },
+    "Follow System" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
+          }
+        }
+      }
+    },
+    "Format:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "格式："
+          }
+        }
+      }
+    },
+    "Four in a row! Reward yourself with a long break 🎉" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "四连胜！奖励自己一个长休息 🎉"
+          }
+        }
+      }
+    },
+    "Full of energy — let's go ✨" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "精神满满，冲鸭 ✨"
+          }
+        }
+      }
+    },
+    "Full screen behavior" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全屏行为"
+          }
+        }
+      }
+    },
+    "Fully recharged — let's go ⚡️" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "满血复活，继续冲 ⚡️"
+          }
+        }
+      }
+    },
     "General" : {
       "localizations" : {
         "ar" : {
@@ -9521,6 +9934,36 @@
         }
       }
     },
+    "Give your eyes a break — look out the window 👀" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "眼睛想放个假，去窗边看看远处 👀"
+          }
+        }
+      }
+    },
+    "Give your eyes some distance 👀" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "眼睛想看看远处 👀"
+          }
+        }
+      }
+    },
+    "Good evening, keep it up 💪" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "晚上好，继续加油 💪"
+          }
+        }
+      }
+    },
     "Got it!" : {
       "localizations" : {
         "ar" : {
@@ -9617,6 +10060,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "明白了！"
+          }
+        }
+      }
+    },
+    "Grab some water and blink a bit 💧" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "去喝口水，眨眨眼睛 💧"
           }
         }
       }
@@ -10121,8 +10574,26 @@
         }
       }
     },
-    "Hide for all apps" : {},
-    "Hide for media app only" : {},
+    "Hide for all apps" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对所有应用隐藏"
+          }
+        }
+      }
+    },
+    "Hide for media app only" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅对媒体应用隐藏"
+          }
+        }
+      }
+    },
     "Hide from screen recording" : {
       "localizations" : {
         "ar" : {
@@ -10243,7 +10714,16 @@
         }
       }
     },
-    "Hide title bar" : {},
+    "Hide title bar" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏标题栏"
+          }
+        }
+      }
+    },
     "Hierarchical" : {
       "localizations" : {
         "ar" : {
@@ -10454,6 +10934,26 @@
         }
       }
     },
+    "Hourly Chime" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整点报时"
+          }
+        }
+      }
+    },
+    "Hourly chime ⏰" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整点报时 ⏰"
+          }
+        }
+      }
+    },
     "Hover delay" : {
       "localizations" : {
         "ar" : {
@@ -10550,6 +11050,36 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Hover delay"
+          }
+        }
+      }
+    },
+    "Image Actions" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图片操作"
+          }
+        }
+      }
+    },
+    "Image Conversion Failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图片转换失败"
+          }
+        }
+      }
+    },
+    "Image Size:" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图片尺寸："
           }
         }
       }
@@ -10865,6 +11395,46 @@
         }
       }
     },
+    "It's late — get some rest 🌙" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜深了，早点休息 🌙"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "Late night %lld o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "凌晨 %lld 点"
+          }
+        }
+      }
+    },
+    "Launch at login" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录时启动"
+          }
+        }
+      }
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -10961,6 +11531,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Layout Preview"
+          }
+        }
+      }
+    },
+    "Locating…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动定位中…"
+          }
+        }
+      }
+    },
+    "Long break 🌿" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长休息 🌿"
           }
         }
       }
@@ -11265,6 +11855,16 @@
         }
       }
     },
+    "Lunch time 🍚" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "干饭时间到 🍚"
+          }
+        }
+      }
+    },
     "Made with 🫶🏻 by not so boring not.people" : {
       "localizations" : {
         "ar" : {
@@ -11361,6 +11961,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "不那么无趣的 not.people 团队 用🫶🏻出品"
+          }
+        }
+      }
+    },
+    "Manual city: %@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动城市：%@"
           }
         }
       }
@@ -12965,6 +13575,26 @@
         }
       }
     },
+    "Morning %lld o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "早上 %lld 点"
+          }
+        }
+      }
+    },
+    "Move around, don't sit too long 🌤" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起来晃晃，别久坐 🌤"
+          }
+        }
+      }
+    },
     "Move off-screen (keep in list)" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13195,6 +13825,16 @@
         }
       }
     },
+    "Nap time 😌" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "午休走起 😌"
+          }
+        }
+      }
+    },
     "Never hide" : {
       "localizations" : {
         "ar" : {
@@ -13291,6 +13931,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "永不隐藏"
+          }
+        }
+      }
+    },
+    "New round — stay steady, we've got this 🔥" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新的一轮，稳住，我们能赢 🔥"
+          }
+        }
+      }
+    },
+    "No Compatible Apps Found" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到兼容的应用"
           }
         }
       }
@@ -13806,12 +14466,32 @@
         }
       }
     },
+    "No location set" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未定位"
+          }
+        }
+      }
+    },
     "No notifications yet" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂无通知"
+          }
+        }
+      }
+    },
+    "Noon %lld o'clock" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中午 %lld 点"
           }
         }
       }
@@ -14316,12 +14996,32 @@
         }
       }
     },
+    "Notification" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知"
+          }
+        }
+      }
+    },
     "Notification interception is off" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知拦截未开启"
+          }
+        }
+      }
+    },
+    "Notification replacement" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知替换"
           }
         }
       }
@@ -14342,6 +15042,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "来自这些应用的通知仍会被拦截并隐藏，但不会在刘海弹窗提醒，仅记录在通知历史中。也可在通知历史列表中点击铃铛斜杠图标一键静音。"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
+          }
+        }
+      }
+    },
+    "One more moment, then sleep 😴" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再玩一会儿就睡哦 😴"
+          }
+        }
+      }
+    },
+    "Open" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开"
           }
         }
       }
@@ -14562,6 +15292,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开系统设置"
+          }
+        }
+      }
+    },
+    "Open With" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开方式"
           }
         }
       }
@@ -14886,6 +15626,46 @@
         }
       }
     },
+    "Other…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他…"
+          }
+        }
+      }
+    },
+    "PDF Creation Failed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建 PDF 失败"
+          }
+        }
+      }
+    },
+    "PRO" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PRO"
+          }
+        }
+      }
+    },
+    "Phase-end sound" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阶段结束音效"
+          }
+        }
+      }
+    },
     "Pick a Color" : {
       "localizations" : {
         "ar" : {
@@ -14996,6 +15776,16 @@
         }
       }
     },
+    "Player tinting" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器着色"
+          }
+        }
+      }
+    },
     "Plugged In" : {
       "localizations" : {
         "ar" : {
@@ -15092,6 +15882,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "已插入"
+          }
+        }
+      }
+    },
+    "Pomodoro" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "番茄钟"
           }
         }
       }
@@ -15206,6 +16006,16 @@
         }
       }
     },
+    "Preserve Metadata" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留元数据"
+          }
+        }
+      }
+    },
     "Privacy popups" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15312,6 +16122,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "进度条样式"
+          }
+        }
+      }
+    },
+    "Quick Look" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速查看"
           }
         }
       }
@@ -15712,6 +16532,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "退出应用"
+          }
+        }
+      }
+    },
+    "Ready to focus 🍅" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备专注 🍅"
+          }
+        }
+      }
+    },
+    "Recharge your brain and come back stronger 🔋" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "给大脑充个电，回来再战 🔋"
           }
         }
       }
@@ -16126,6 +16966,26 @@
         }
       }
     },
+    "Remove Background" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除背景"
+          }
+        }
+      }
+    },
+    "Remove Selected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除所选"
+          }
+        }
+      }
+    },
     "Remove from shelf after dragging" : {
       "localizations" : {
         "ar" : {
@@ -16232,6 +17092,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除所选"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名"
           }
         }
       }
@@ -16536,6 +17406,16 @@
         }
       }
     },
+    "Rest well — go for a walk outside 🌿" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好好歇会儿，出门散个步吧 🌿"
+          }
+        }
+      }
+    },
     "Restart" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16737,6 +17617,16 @@
         }
       }
     },
+    "Restore auto-location" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复自动定位"
+          }
+        }
+      }
+    },
     "Running" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -16844,6 +17734,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "截屏"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
+          }
+        }
+      }
+    },
+    "Search city (e.g. Hangzhou)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索城市（如：杭州）"
+          }
+        }
+      }
+    },
+    "Select All" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全选"
           }
         }
       }
@@ -17154,6 +18074,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "设置"
+          }
+        }
+      }
+    },
+    "Share…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享…"
           }
         }
       }
@@ -17754,6 +18684,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Show cool face animation while inactive"
+          }
+        }
+      }
+    },
+    "Show in Finder" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在访达中显示"
           }
         }
       }
@@ -18658,6 +19598,16 @@
         }
       }
     },
+    "Show weather while inactive" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非活跃时显示天气"
+          }
+        }
+      }
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -18954,6 +19904,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "Sneak Peek 在 Notch 下显示媒体标题和艺术家几秒钟。"
+          }
+        }
+      }
+    },
+    "Sneak a little break, no one's watching 🐟" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摸鱼一会儿，没人看见 🐟"
+          }
+        }
+      }
+    },
+    "Sneak a little lie-down, no one's watching 😌" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偷偷躺平一会儿，没人看见 😌"
           }
         }
       }
@@ -19264,6 +20234,26 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "方形"
+          }
+        }
+      }
+    },
+    "Stand up and stretch a little" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "站起来伸个懒腰吧～"
+          }
+        }
+      }
+    },
+    "Still up? Tomorrow-you will thank you 😴" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还不睡吗，明天会感谢你的 😴"
           }
         }
       }
@@ -19669,6 +20659,16 @@
         }
       }
     },
+    "Take a break ☕️" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息一下 ☕️"
+          }
+        }
+      }
+    },
     "Text and images you copy are captured automatically. Copies flagged as concealed (e.g. by password managers) are never recorded. Click an entry in the notch to copy it back." : {
       "localizations" : {
         "zh-Hans" : {
@@ -19679,12 +20679,42 @@
         }
       }
     },
+    "That focus deserves a nice long break ☕️" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这么专注，值得一个长长的大休息 ☕️"
+          }
+        }
+      }
+    },
     "The original banner flashes for a fraction of a second before it is hidden — macOS renders banners itself and this cannot be prevented." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "原横幅隐藏前会有短暂闪现——横幅由 macOS 渲染,无法完全避免。"
+          }
+        }
+      }
+    },
+    "The pomodoro timer misses you — come back 🍅" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "番茄计时器想你了，快回来 🍅"
+          }
+        }
+      }
+    },
+    "The world is asleep, but not you 🌌" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "世界都睡了，就你还醒着 🌌"
           }
         }
       }
@@ -19785,6 +20815,36 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "充电时间：%lld 分钟"
+          }
+        }
+      }
+    },
+    "Time to stretch 🙆" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起来伸个懒腰吧 🙆"
+          }
+        }
+      }
+    },
+    "Time to wind down 🌙" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该收摊啦 🌙"
+          }
+        }
+      }
+    },
+    "Timers" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "计时器"
           }
         }
       }
@@ -20085,6 +21145,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "触发 Sneak Peek："
+          }
+        }
+      }
+    },
+    "Tomato's done — go take a break 🍅" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "番茄熟啦，去休息一下吧 🍅"
           }
         }
       }
@@ -21601,6 +22671,16 @@
         }
       }
     },
+    "Wrap up for today 🌙" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天也要收工了 🌙"
+          }
+        }
+      }
+    },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {
         "ar" : {
@@ -21697,6 +22777,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "如果您想进一步调整内容，您可以随时访问设置。"
+          }
+        }
+      }
+    },
+    "You have a new message" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您收到一条新消息"
           }
         }
       }

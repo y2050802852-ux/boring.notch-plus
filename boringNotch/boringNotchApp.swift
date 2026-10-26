@@ -33,15 +33,17 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
-            Button("Settings") {
+            // Rendered through AppKit's NSMenu, so resolve titles through
+            // L10n instead of the SwiftUI locale environment.
+            Button(L10n.string("Settings")) {
                 SettingsWindowController.shared.showWindow()
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             Divider()
-            Button("Restart Boring Notch") {
+            Button(L10n.string("Restart Boring Notch")) {
                 ApplicationRelauncher.restart()
             }
-            Button("Quit", role: .destructive) {
+            Button(L10n.string("Quit"), role: .destructive) {
                 NSApplication.shared.terminate(self)
             }
             .keyboardShortcut(KeyEquivalent("Q"), modifiers: .command)
@@ -235,10 +237,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// defer the reminder if the notch is currently hidden (fullscreen media).
     @MainActor
     func openNotchForPomodoroReminder() {
-        var viewModel = vm
-        if Defaults[.showOnAllDisplays], let screenViewModel = viewModels[coordinator.selectedScreenUUID] {
-            viewModel = screenViewModel
-        }
+        let viewModel = popupViewModel
 
         if viewModel.hideOnClosed {
             PomodoroManager.shared.markReminderDeferred()
@@ -269,12 +268,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// visible (hidden in fullscreen / open states get sound only).
     @MainActor
     func showHourlyChimeVisual(_ message: String) {
-        var viewModel = vm
-        if Defaults[.showOnAllDisplays], let screenViewModel = viewModels[coordinator.selectedScreenUUID] {
-            viewModel = screenViewModel
-        }
+        let viewModel = popupViewModel
         guard viewModel.notchState == .closed, !viewModel.hideOnClosed else { return }
         coordinator.showHourlyChime(message)
+    }
+
+    /// Popup targets (pomodoro reminder, hourly chime banner) go to the
+    /// system main display when "show on all displays" is on — the
+    /// focus-derived `selectedScreenUUID` may point at a secondary screen.
+    @MainActor
+    private var popupViewModel: BoringViewModel {
+        guard Defaults[.showOnAllDisplays] else { return vm }
+        if let primaryUUID = NSScreen.primaryDisplay?.displayUUID,
+           let screenViewModel = viewModels[primaryUUID] {
+            return screenViewModel
+        }
+        if let screenViewModel = viewModels[coordinator.selectedScreenUUID] {
+            return screenViewModel
+        }
+        return vm
     }
 
     private func createBoringNotchWindow(for screen: NSScreen, with viewModel: BoringViewModel) -> NSWindow {
@@ -291,8 +303,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         window.contentView = NSHostingView(
-            rootView: ContentView()
-                .environmentObject(viewModel)
+            rootView: LocalizedRootView {
+                ContentView()
+                    .environmentObject(viewModel)
+            }
         )
 
         window.orderFrontRegardless()
@@ -695,19 +709,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.contentView = NSHostingView(
-                rootView: OnboardingView(
-                    step: step,
-                    onFinish: {
-                        window.orderOut(nil)
+                rootView: LocalizedRootView {
+                    OnboardingView(
+                        step: step,
+                        onFinish: {
+                            window.orderOut(nil)
 //                        NSApp.setActivationPolicy(.accessory)
-                        window.close()
-                        NSApp.deactivate()
-                    },
-                    onOpenSettings: {
-                        window.close()
-                        SettingsWindowController.shared.showWindow()
-                    }
-                ))
+                            window.close()
+                            NSApp.deactivate()
+                        },
+                        onOpenSettings: {
+                            window.close()
+                            SettingsWindowController.shared.showWindow()
+                        }
+                    )
+                })
             window.isRestorable = false
             window.identifier = NSUserInterfaceItemIdentifier("OnboardingWindow")
 

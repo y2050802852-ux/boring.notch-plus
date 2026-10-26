@@ -23,7 +23,7 @@ enum NotificationAppIcon {
 
     static func icon(for appName: String) -> NSImage? {
         let name = appName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty, name != "通知" else { return nil }
+        guard !name.isEmpty, name != L10n.string("Notification") else { return nil }
         if let cached = cache[name] { return cached }
 
         let icon = runningAppIcon(for: name) ?? installedAppIcon(for: name)

@@ -40,7 +40,7 @@ class SettingsWindowController: NSWindowController {
     private func setupWindow() {
         guard let window = window else { return }
         
-        window.title = "Boring Notch Settings"
+        window.title = L10n.string("Boring Notch Settings")
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
@@ -59,7 +59,7 @@ class SettingsWindowController: NSWindowController {
         
         // Create the SwiftUI content
         let settingsView = SettingsView(updaterController: updaterController)
-        let hostingView = NSHostingView(rootView: settingsView)
+        let hostingView = NSHostingView(rootView: LocalizedRootView { settingsView })
         window.contentView = hostingView
         
         // Handle window closing

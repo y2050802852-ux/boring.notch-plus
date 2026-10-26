@@ -206,28 +206,29 @@ final class PomodoroManager: ObservableObject {
 
     // MARK: - Reminder
 
+    // Catalog keys; resolved against the selected app language when shown.
     private static let focusEndMessages = [
-        "番茄熟啦，去休息一下吧 🍅",
-        "去喝口水，眨眨眼睛 💧",
-        "站起来伸个懒腰吧～",
-        "眼睛想放个假，去窗边看看远处 👀",
-        "摸鱼五分钟，快乐一整天 🐟",
-        "给大脑充个电，回来再战 🔋",
-        "偷偷躺平一会儿，没人看见 😌",
+        "Tomato's done — go take a break 🍅",
+        "Grab some water and blink a bit 💧",
+        "Stand up and stretch a little",
+        "Give your eyes a break — look out the window 👀",
+        "Five minutes of slacking, a whole day of joy 🐟",
+        "Recharge your brain and come back stronger 🔋",
+        "Sneak a little lie-down, no one's watching 😌",
     ]
 
     private static let longBreakStartMessages = [
-        "四连胜！奖励自己一个长休息 🎉",
-        "好好歇会儿，出门散个步吧 🌿",
-        "这么专注，值得一个长长的大休息 ☕️",
+        "Four in a row! Reward yourself with a long break 🎉",
+        "Rest well — go for a walk outside 🌿",
+        "That focus deserves a nice long break ☕️",
     ]
 
     private static let breakEndMessages = [
-        "满血复活，继续冲 ⚡️",
-        "休息够啦，回来开工 💪",
-        "新的一轮，稳住，我们能赢 🔥",
-        "番茄计时器想你了，快回来 🍅",
-        "精神满满，冲鸭 ✨",
+        "Fully recharged — let's go ⚡️",
+        "Break's over — back to work 💪",
+        "New round — stay steady, we've got this 🔥",
+        "The pomodoro timer misses you — come back 🍅",
+        "Full of energy — let's go ✨",
     ]
 
     /// Called after the phase has advanced; picks a fresh playful message for

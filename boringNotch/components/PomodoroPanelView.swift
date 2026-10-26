@@ -13,24 +13,26 @@ import SwiftUI
 struct PomodoroPanelView: View {
     @ObservedObject var pomodoro = PomodoroManager.shared
 
+    // Catalog keys, resolved at render time so the language switch
+    // applies without restarting the timer.
     private var headline: String {
         if let message = pomodoro.reminderMessage {
             return message
         }
         switch pomodoro.phase {
         case .focus:
-            return pomodoro.isRunning ? "专注中 🍅" : "准备专注 🍅"
+            return pomodoro.isRunning ? "Focusing 🍅" : "Ready to focus 🍅"
         case .shortBreak:
-            return "休息一下 ☕️"
+            return "Take a break ☕️"
         case .longBreak:
-            return "长休息 🌿"
+            return "Long break 🌿"
         }
     }
 
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: 8) {
-                Text(headline)
+                Text(LocalizedStringKey(headline))
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.85))
                 if pomodoro.phase == .focus {

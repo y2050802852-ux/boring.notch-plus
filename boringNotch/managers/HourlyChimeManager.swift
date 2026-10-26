@@ -115,31 +115,42 @@ final class HourlyChimeManager: ObservableObject {
         )
     }
 
-    /// A playful time announcement for the current hour, e.g. "下午 3 点，来杯咖啡续命 ☕️".
+    /// A playful time announcement for the current hour. The pieces are
+    /// catalog keys resolved with the selected app language; the message is
+    /// composed when the chime fires (a 3-second banner, no live update).
     static func randomMessage(for date: Date = Date()) -> String {
         let hour = Calendar.current.component(.hour, from: date)
-        let timeText: String
+        let timeKey: String
+        let displayHour: Int
         let tails: [String]
         switch hour {
         case 0..<5:
-            timeText = "凌晨 \(hour) 点"
-            tails = ["夜深了，早点休息 🌙", "还不睡吗，明天会感谢你的 😴", "世界都睡了，就你还醒着 🌌"]
+            timeKey = "Late night %lld o'clock"
+            displayHour = hour
+            tails = ["It's late — get some rest 🌙", "Still up? Tomorrow-you will thank you 😴", "The world is asleep, but not you 🌌"]
         case 5..<11:
-            timeText = "早上 \(hour) 点"
-            tails = ["新的一小时，精神满满 ✨", "美好的一天开始啦 ☀️", "起来伸个懒腰吧 🙆"]
+            timeKey = "Morning %lld o'clock"
+            displayHour = hour
+            tails = ["A fresh hour, full of energy ✨", "A beautiful day begins ☀️", "Time to stretch 🙆"]
         case 11..<13:
-            timeText = "中午 \(hour) 点"
-            tails = ["干饭时间到 🍚", "午休走起 😌", "吃饱了才有力气干活 🍜"]
+            timeKey = "Noon %lld o'clock"
+            displayHour = hour
+            tails = ["Lunch time 🍚", "Nap time 😌", "Eat well, work well 🍜"]
         case 13..<18:
-            timeText = "下午 \(hour - 12) 点"
-            tails = ["起来晃晃，别久坐 🌤", "来杯咖啡续命 ☕️", "眼睛想看看远处 👀"]
+            timeKey = "Afternoon %lld o'clock"
+            displayHour = hour - 12
+            tails = ["Move around, don't sit too long 🌤", "Coffee refill time ☕️", "Give your eyes some distance 👀"]
         case 18..<23:
-            timeText = "晚上 \(hour - 12) 点"
-            tails = ["该收摊啦 🌙", "摸鱼一会儿，没人看见 🐟", "晚上好，继续加油 💪"]
+            timeKey = "Evening %lld o'clock"
+            displayHour = hour - 12
+            tails = ["Time to wind down 🌙", "Sneak a little break, no one's watching 🐟", "Good evening, keep it up 💪"]
         default:
-            timeText = "晚上 11 点"
-            tails = ["今天也要收工了 🌙", "再玩一会儿就睡哦 😴"]
+            timeKey = "Evening 11 o'clock"
+            displayHour = 11
+            tails = ["Wrap up for today 🌙", "One more moment, then sleep 😴"]
         }
-        return "\(timeText)，\(tails.randomElement() ?? "整点报时 ⏰")"
+        let timeText = L10n.string(timeKey, displayHour)
+        let tail = L10n.string(tails.randomElement() ?? "Hourly chime ⏰")
+        return L10n.string("%@ %@", timeText, tail)
     }
 }

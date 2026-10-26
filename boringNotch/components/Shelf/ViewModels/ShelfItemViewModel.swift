@@ -1055,7 +1055,7 @@ final class ShelfItemViewModel: ObservableObject {
                         }
                     } catch {
                         print("❌ Failed to convert image: \(error.localizedDescription)")
-                        showErrorAlert(title: "Image Conversion Failed", message: error.localizedDescription)
+                        showErrorAlert(title: L10n.string("Image Conversion Failed"), message: error.localizedDescription)
                     }
                 }
             }
