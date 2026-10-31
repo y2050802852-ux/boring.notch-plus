@@ -2548,6 +2548,16 @@
         }
       }
     },
+    "Arrow" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "箭头"
+          }
+        }
+      }
+    },
     "Auto-detected location" : {
       "localizations" : {
         "zh-Hans" : {
@@ -4778,6 +4788,16 @@
         }
       }
     },
+    "Clear" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空"
+          }
+        }
+      }
+    },
     "Clear clipboard history" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5144,6 +5164,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "来杯咖啡续命 ☕️"
+          }
+        }
+      }
+    },
+    "Color" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "颜色"
           }
         }
       }
@@ -7778,6 +7808,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "编辑布局"
+          }
+        }
+      }
+    },
+    "Ellipse" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "椭圆"
           }
         }
       }
@@ -11535,6 +11575,16 @@
         }
       }
     },
+    "Line" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直线"
+          }
+        }
+      }
+    },
     "Locating…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13605,6 +13655,16 @@
         }
       }
     },
+    "Move selection" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移动选区"
+          }
+        }
+      }
+    },
     "Music Source" : {
       "localizations" : {
         "ar" : {
@@ -15656,6 +15716,16 @@
         }
       }
     },
+    "Pen" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画笔"
+          }
+        }
+      }
+    },
     "Phase-end sound" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16552,6 +16622,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "给大脑充个电，回来再战 🔋"
+          }
+        }
+      }
+    },
+    "Rectangle" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "矩形"
           }
         }
       }
@@ -21255,6 +21335,16 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "在Notch里双指向上滑动以关闭。当**悬停在Notch时打开**选项禁用时，双指向下滑动即可打开"
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销"
           }
         }
       }

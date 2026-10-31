@@ -3,8 +3,12 @@
 //  boringNotch
 //
 //  1.1.5 region screenshot: a global shortcut dims the screen under the
-//  mouse, the user drags out a selection, then fine-tunes it with four edge
-//  handles (PPT-style) and confirms with the ✓/✗ buttons (ESC cancels).
+//  mouse, the user drags out a selection, then fine-tunes it with four
+//  corner handles and confirms with the ✓/✗ buttons (ESC cancels).
+//  1.1.8: the screen is frozen into a snapshot when capture begins — the
+//  selection and the annotation tools (pen/rect/ellipse/line/arrow) work on
+//  that frozen frame, so moving content (streams, video) cannot leak into
+//  the picture. Confirming crops the snapshot and composites the strokes.
 //  The PNG lands in the clipboard-history store, goes on the pasteboard as
 //  BOTH a file URL and image data — so ⌘V pastes a real file into any
 //  Finder folder and the image into chat apps — and the clipboard history
@@ -36,12 +40,22 @@ final class ScreenshotManager: ObservableObject {
     @Published var rect: CGRect = .zero
     @Published var adjusting = false
 
+    // Annotation state (see ScreenshotAnnotations.swift).
+    @Published var activeTool: AnnotationTool = .none
+    @Published var activeColor: AnnotationColor = .red
+    @Published var strokes: [AnnotationStroke] = []
+    private var strokeStart: CGPoint?
+
     private var panel: CapturePanel?
     var screenFrame: CGRect = .zero
     private var keyMonitor: Any?
     private var mouseMonitor: Any?
     private var dragStart: CGPoint?
     private var moveOriginRect: CGRect?
+
+    /// Frozen frame of the captured screen (pixel size); nil = live capture.
+    private(set) var snapshot: CGImage?
+    var backingScale: CGFloat = 2
 
     private var overlayID: CGWindowID = 0
 
@@ -58,6 +72,15 @@ final class ScreenshotManager: ObservableObject {
         let screen = NSScreen.screens.first { $0.frame.contains(mouse) }
             ?? NSScreen.main ?? NSScreen.screens.first!
         screenFrame = screen.frame
+        backingScale = screen.backingScaleFactor
+
+        // Freeze the screen now: selection and annotation all happen on this
+        // frame, so a moving video cannot change the picture before confirm.
+        let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
+        snapshot = displayID.flatMap { CGDisplayCreateImage($0) }
+        if snapshot == nil {
+            Self.debugLog("freeze snapshot failed; falling back to live capture")
+        }
 
         let panel = CapturePanel(
             contentRect: screen.frame,
@@ -80,6 +103,8 @@ final class ScreenshotManager: ObservableObject {
 
         adjusting = false
         rect = .zero
+        activeTool = .none
+        strokes = []
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.panel != nil else { return event }
@@ -105,7 +130,7 @@ final class ScreenshotManager: ObservableObject {
     }
 
     /// Arrow by default; crosshair near the corner handles; pointing hand
-    /// over the ✓/✗ buttons.
+    /// over the ✓/✗ buttons and the annotation toolbar.
     func updateCursor(for viewPoint: CGPoint) {
         guard adjusting else {
             NSCursor.arrow.set()
@@ -120,6 +145,10 @@ final class ScreenshotManager: ObservableObject {
         }
         let buttons = confirmButtonsPosition(for: rect)
         if abs(viewPoint.x - buttons.x) <= 44, abs(viewPoint.y - buttons.y) <= 22 {
+            NSCursor.pointingHand.set()
+            return
+        }
+        if toolbarHitRect(for: rect).contains(viewPoint) {
             NSCursor.pointingHand.set()
             return
         }
@@ -185,11 +214,80 @@ final class ScreenshotManager: ObservableObject {
         moveOriginRect = nil
     }
 
+    // MARK: Annotation gestures (active tool selected on the toolbar)
+
+    /// Drag while an annotation tool is active: start a stroke inside the
+    /// selection, extend it while dragging (clamped so sloppy pen strokes
+    /// stay usable), commit on release.
+    func annotationDragged(to point: CGPoint) {
+        if strokeStart == nil {
+            guard rect.contains(point) else { return }
+            strokeStart = point
+            strokes.append(
+                AnnotationStroke(
+                    tool: activeTool, color: activeColor,
+                    points: [clampedToSelection(point)]))
+            return
+        }
+        guard !strokes.isEmpty else { return }
+        let clamped = clampedToSelection(point)
+        if activeTool == .pen {
+            strokes[strokes.count - 1].points.append(clamped)
+        } else {
+            strokes[strokes.count - 1].points = [strokeStart!, clamped]
+        }
+    }
+
+    func annotationEnded() {
+        strokeStart = nil
+    }
+
+    func undoAnnotation() {
+        guard !strokes.isEmpty else { return }
+        strokes.removeLast()
+    }
+
+    func clearAnnotations() {
+        strokes.removeAll()
+    }
+
+    private func clampedToSelection(_ point: CGPoint) -> CGPoint {
+        CGPoint(
+            x: min(max(point.x, rect.minX), rect.maxX),
+            y: min(max(point.y, rect.minY), rect.maxY))
+    }
+
+    // MARK: Toolbar geometry (shared by the view and the cursor logic)
+
+    static let annotationToolbarSize = CGSize(width: 400, height: 42)
+
+    /// Below the selection, clamped; above it when the selection reaches the
+    /// screen bottom.
+    func toolbarPosition(for rect: CGRect) -> CGPoint {
+        let halfWidth = Self.annotationToolbarSize.width / 2
+        let x = min(max(rect.midX, halfWidth + 8), screenFrame.maxX - halfWidth - 8)
+        let belowY = rect.maxY + 36
+        let y = belowY + Self.annotationToolbarSize.height / 2 <= screenFrame.maxY - 8
+            ? belowY
+            : max(rect.minY - 36, 40)
+        return CGPoint(x: x, y: y)
+    }
+
+    func toolbarHitRect(for rect: CGRect) -> CGRect {
+        let position = toolbarPosition(for: rect)
+        return CGRect(
+            x: position.x - Self.annotationToolbarSize.width / 2,
+            y: position.y - Self.annotationToolbarSize.height / 2 - 4,
+            width: Self.annotationToolbarSize.width,
+            height: Self.annotationToolbarSize.height + 8)
+    }
+
     func captureSelection() {
         let selection = rect
         let frame = screenFrame
+        let pendingStrokes = strokes
         closeOverlay()
-        capture(rect: selection, screenFrame: frame)
+        capture(rect: selection, screenFrame: frame, strokes: pendingStrokes)
     }
 
     func closeOverlay() {
@@ -205,25 +303,19 @@ final class ScreenshotManager: ObservableObject {
         panel = nil
         adjusting = false
         rect = .zero
+        activeTool = .none
+        strokes = []
+        strokeStart = nil
+        snapshot = nil
     }
 
     // MARK: Capture & store
 
-    private func capture(rect: CGRect, screenFrame: CGRect) {
-        // The view's top-left-origin rect maps to CG's global top-left space
-        // with a vertical offset of (main screen top − this screen top).
-        let mainTop = NSScreen.screens.first?.frame.maxY ?? 0
-        let cgRect = CGRect(
-            x: screenFrame.origin.x + rect.minX,
-            y: mainTop - screenFrame.maxY + rect.minY,
-            width: rect.width,
-            height: rect.height)
-
-        // The overlay window sits above everything; capturing only the
-        // windows below it excludes the dimming layer from the image.
-        guard let image = CGWindowListCreateImage(
-            cgRect, [.optionOnScreenBelowWindow], overlayID,
-            [.bestResolution]) else { return }
+    private func capture(rect: CGRect, screenFrame: CGRect, strokes: [AnnotationStroke]) {
+        guard let image = renderedCapture(selection: rect, screenFrame: screenFrame, strokes: strokes) else {
+            Self.debugLog("capture produced no image")
+            return
+        }
         let rep = NSBitmapImageRep(cgImage: image)
         guard let png = rep.representation(using: .png, properties: [:]) else { return }
 
@@ -252,6 +344,85 @@ final class ScreenshotManager: ObservableObject {
         pasteboard.writeObjects([storeURL as NSURL])
         pasteboard.setData(png, forType: .png)
         ClipboardManager.shared.suppressNextCapture()
+    }
+
+    /// Crop the frozen snapshot to the selection and composite the
+    /// annotations; falls back to a live capture when no snapshot exists.
+    private func renderedCapture(
+        selection: CGRect,
+        screenFrame: CGRect,
+        strokes: [AnnotationStroke]
+    ) -> CGImage? {
+        if let snapshot {
+            let scaleX = CGFloat(snapshot.width) / screenFrame.width
+            let scaleY = CGFloat(snapshot.height) / screenFrame.height
+            // Selection is in view coordinates whose (0, 0) is this screen's
+            // top-left corner — same origin convention as the CGImage.
+            let pixelRect = CGRect(
+                x: selection.minX * scaleX,
+                y: selection.minY * scaleY,
+                width: selection.width * scaleX,
+                height: selection.height * scaleY)
+            guard let cropped = snapshot.cropping(to: pixelRect) else { return nil }
+            guard !strokes.isEmpty else { return cropped }
+            return Self.composite(
+                strokes: strokes, on: cropped,
+                scale: CGPoint(x: scaleX, y: scaleY))
+        }
+
+        // Live fallback: the view's top-left-origin rect maps to CG's global
+        // top-left space with a vertical offset of (main top − this top).
+        let mainTop = NSScreen.screens.first?.frame.maxY ?? 0
+        let cgRect = CGRect(
+            x: screenFrame.origin.x + selection.minX,
+            y: mainTop - screenFrame.maxY + selection.minY,
+            width: selection.width,
+            height: selection.height)
+        // The overlay window sits above everything; capturing only the
+        // windows below it excludes the dimming layer from the image.
+        return CGWindowListCreateImage(
+            cgRect, [.optionOnScreenBelowWindow], overlayID,
+            [.bestResolution])
+    }
+
+    /// Draws the strokes (selection-local points, top-left origin) over the
+    /// cropped snapshot at native resolution.
+    private static func composite(
+        strokes: [AnnotationStroke],
+        on base: CGImage,
+        scale: CGPoint
+    ) -> CGImage? {
+        guard let context = CGContext(
+            data: nil,
+            width: base.width,
+            height: base.height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return base }
+
+        context.draw(base, in: CGRect(x: 0, y: 0, width: CGFloat(base.width), height: CGFloat(base.height)))
+        // Stroke coordinates are top-left points; map them into the
+        // bottom-left pixel space of the context.
+        context.translateBy(x: 0, y: CGFloat(base.height))
+        context.scaleBy(x: scale.x, y: -scale.y)
+        context.setLineWidth(3)
+        context.setLineCap(.round)
+        context.setLineJoin(.round)
+        for stroke in strokes {
+            let color = stroke.color.cgColor
+            context.setStrokeColor(color)
+            context.setFillColor(color)
+            if stroke.points.count < 2, let single = stroke.points.first {
+                context.fillEllipse(in: CGRect(
+                    x: single.x - 1.5, y: single.y - 1.5, width: 3, height: 3))
+                continue
+            }
+            context.addPath(stroke.path(offset: .zero).cgPath)
+            context.strokePath()
+        }
+        return context.makeImage() ?? base
     }
 
     func imageWidthLabel() -> String {
@@ -303,6 +474,18 @@ struct ScreenshotOverlayView: View {
 
     var body: some View {
         ZStack {
+            // Frozen frame captured at beginCapture: the selection happens
+            // against a still image, so moving content (streams, video)
+            // cannot change the picture before the user confirms.
+            if let snapshot = manager.snapshot {
+                Image(decorative: snapshot, scale: manager.backingScale, orientation: .up)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: manager.screenFrame.width, height: manager.screenFrame.height)
+                    .ignoresSafeArea()
+                    .accessibilityHidden(true)
+            }
+
             // Dimming with a transparent hole at the selection. VISUAL ONLY —
             // gestures never attach to the masked view (the mask breaks
             // SwiftUI hit-testing and swallows every mouse event).
@@ -312,6 +495,8 @@ struct ScreenshotOverlayView: View {
 
             selectionBorder
 
+            AnnotationCanvasView(manager: manager)
+
             // Full-screen interaction layer ABOVE the dimming: receives all
             // mouse events deterministically (no mask in its hit path).
             Color.clear
@@ -320,6 +505,7 @@ struct ScreenshotOverlayView: View {
 
             if manager.adjusting {
                 selectionHandles
+                AnnotationToolbarView(manager: manager)
                 confirmButtons
             }
         }
@@ -329,16 +515,27 @@ struct ScreenshotOverlayView: View {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 if manager.adjusting {
-                    // Adjusting: dragging inside the selection moves it.
-                    guard manager.rect.contains(value.startLocation) else { return }
-                    manager.selectionDragged(translation: value.translation)
+                    if manager.activeTool != .none {
+                        // A tool is selected: the drag draws an annotation.
+                        manager.annotationDragged(to: value.location)
+                    } else if manager.rect.contains(value.startLocation) {
+                        // No tool: dragging inside the selection moves it.
+                        manager.selectionDragged(translation: value.translation)
+                    }
                 } else {
                     manager.dragUpdated(to: value.location)
                 }
             }
             .onEnded { _ in
-                if manager.adjusting { manager.moveEnded() }
-                else { manager.dragEnded() }
+                if manager.adjusting {
+                    if manager.activeTool != .none {
+                        manager.annotationEnded()
+                    } else {
+                        manager.moveEnded()
+                    }
+                } else {
+                    manager.dragEnded()
+                }
             }
     }
 

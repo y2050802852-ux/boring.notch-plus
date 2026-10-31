@@ -151,6 +151,7 @@
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		AA00B0BA5E55F20000000021 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000020 /* L10n.swift */; };
 		AA00B0BA5E55F20000000023 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000022 /* Logger.swift */; };
+		AA00B0BA5E55F20000000031 /* ScreenshotAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00B0BA5E55F20000000030 /* ScreenshotAnnotations.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -326,6 +327,7 @@
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F20000000020 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F20000000022 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		AA00B0BA5E55F20000000030 /* ScreenshotAnnotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotAnnotations.swift; sourceTree = "<group>"; };
 		AA00B0BA5E55F20000000024 /* utils */ = {
 			isa = PBXGroup;
 			children = (
@@ -546,6 +548,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				AA00B0BA5E55F20000000030 /* ScreenshotAnnotations.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
 				112FB7342CCF16F70015238C /* NotchSpaceManager.swift */,
@@ -1013,6 +1016,7 @@
 				AA00B0BA5E55F20000000004 /* HourlyChimeManager.swift in Sources */,
 				AA00B0BA5E55F20000000021 /* L10n.swift in Sources */,
 				AA00B0BA5E55F20000000023 /* Logger.swift in Sources */,
+				AA00B0BA5E55F20000000031 /* ScreenshotAnnotations.swift in Sources */,
 				B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */,
 				B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */,
 				118EBE312E9717DB00D54B5A /* URL+SecurityScoped.swift in Sources */,
