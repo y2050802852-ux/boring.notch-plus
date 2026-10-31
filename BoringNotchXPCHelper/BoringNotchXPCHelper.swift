@@ -104,16 +104,18 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     @objc func isScreenBrightnessAvailable(with reply: @escaping (Bool) -> Void) {
         var b: Float = 0
-        reply(displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) || ioServiceFor(displayID: CGMainDisplayID()) != nil)
+        let target = brightnessTargetDisplay()
+        reply(displayServicesGetBrightness(displayID: target, out: &b) || ioServiceFor(displayID: target) != nil)
     }
 
     @objc func currentScreenBrightness(with reply: @escaping (NSNumber?) -> Void) {
+        let target = brightnessTargetDisplay()
         var b: Float = 0
-        if displayServicesGetBrightness(displayID: CGMainDisplayID(), out: &b) {
+        if displayServicesGetBrightness(displayID: target, out: &b) {
             reply(NSNumber(value: b))
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: target) {
             var level: Float = 0
             if IODisplayGetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, &level) == kIOReturnSuccess {
                 IOObjectRelease(io)
@@ -127,17 +129,34 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
 
     @objc func setScreenBrightness(_ value: Float, with reply: @escaping (Bool) -> Void) {
         let clamped = max(0, min(1, value))
-        if displayServicesSetBrightness(displayID: CGMainDisplayID(), value: clamped) {
+        let target = brightnessTargetDisplay()
+        if displayServicesSetBrightness(displayID: target, value: clamped) {
             reply(true)
             return
         }
-        if let io = ioServiceFor(displayID: CGMainDisplayID()) {
+        if let io = ioServiceFor(displayID: target) {
             let ok = IODisplaySetFloatParameter(io, 0, kIODisplayBrightnessKey as CFString, clamped) == kIOReturnSuccess
             IOObjectRelease(io)
             reply(ok)
             return
         }
         reply(false)
+    }
+
+    /// Brightness via DisplayServices / IODisplay only works on the built-in
+    /// panel. When an external display is the main display, CGMainDisplayID
+    /// points at it and every write silently fails — the built-in screen is
+    /// never touched. Target the built-in panel first and fall back to the
+    /// main display (desktop Macs without one).
+    private func brightnessTargetDisplay() -> CGDirectDisplayID {
+        var ids = [CGDirectDisplayID](repeating: 0, count: 16)
+        var count: UInt32 = 0
+        if CGGetOnlineDisplayList(UInt32(ids.count), &ids, &count) == .success {
+            for id in ids.prefix(Int(count)) where CGDisplayIsBuiltin(id) != 0 {
+                return id
+            }
+        }
+        return CGMainDisplayID()
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access

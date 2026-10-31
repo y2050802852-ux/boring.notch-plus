@@ -5,6 +5,26 @@
 
 import AppKit
 
+/// Thread-safe cache of whether screen brightness can be controlled through
+/// the XPC helper. The media-key tap consults it (from a non-main queue)
+/// before swallowing brightness keys: when control is unavailable the keys
+/// are passed through so macOS handles them natively.
+final class BrightnessAvailability {
+	static let shared = BrightnessAvailability()
+	private let lock = NSLock()
+	private var cached: Bool?
+
+	var value: Bool? {
+		lock.lock(); defer { lock.unlock() }
+		return cached
+	}
+
+	func set(_ value: Bool) {
+		lock.lock(); defer { lock.unlock() }
+		cached = value
+	}
+}
+
 final class BrightnessManager: ObservableObject {
 	static let shared = BrightnessManager()
 
@@ -15,7 +35,12 @@ final class BrightnessManager: ObservableObject {
 	private let visibleDuration: TimeInterval = 1.2
 	private let client = XPCHelperClient.shared
 
-	private init() { refresh() }
+	private init() {
+		refresh()
+		Task {
+			BrightnessAvailability.shared.set(await client.isScreenBrightnessAvailable())
+		}
+	}
 
 	var shouldShowOverlay: Bool { Date().timeIntervalSince(lastChangeAt) < visibleDuration }
 
@@ -29,7 +54,9 @@ final class BrightnessManager: ObservableObject {
 
 	@MainActor func setRelative(delta: Float) {
 		Task { @MainActor in
-			let starting = await client.currentScreenBrightness() ?? rawBrightness
+			// A failed read must not start from 0 — the first successful
+			// write would flash the screen to near-black.
+			let starting = await client.currentScreenBrightness() ?? (rawBrightness > 0 ? rawBrightness : 0.5)
 			let target = max(0, min(1, starting + delta))
 			let ok = await client.setScreenBrightness(target)
 			if ok {

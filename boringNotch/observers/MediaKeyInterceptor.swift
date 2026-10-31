@@ -176,6 +176,11 @@ final class MediaKeyInterceptor {
             }
             return nil
         case .brightnessUp:
+            // Brightness control unavailable (no controllable panel):
+            // hand the key to macOS instead of swallowing it.
+            if !commandDown, BrightnessAvailability.shared.value == false {
+                return Unmanaged.passRetained(cgEvent)
+            }
             if optionDown && !shiftDown {
                if optionDown && !shiftDown {
                     switch optionAction {
@@ -219,6 +224,11 @@ final class MediaKeyInterceptor {
         return nil
 
         case .brightnessDown:
+            // Brightness control unavailable (no controllable panel):
+            // hand the key to macOS instead of swallowing it.
+            if !commandDown, BrightnessAvailability.shared.value == false {
+                return Unmanaged.passRetained(cgEvent)
+            }
             if optionDown && !shiftDown {
                if optionDown && !shiftDown {
                     switch optionAction {
