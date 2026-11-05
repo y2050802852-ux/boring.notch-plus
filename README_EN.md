@@ -1,4 +1,4 @@
-<h1 align="center">boring.notch-plus</h1>
+<h1 align="center">PeakDeck</h1>
 
 <p align="center">
   <a href="README.md">中文</a> · <strong>English</strong>
@@ -62,8 +62,8 @@ All original features (music controls, calendar, shelf, HUD replacement, camera 
 
 ## 📥 Install
 
-1. Grab the latest `boringNotch-*.dmg` from [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases)
-2. Open the DMG and drag **boringNotch.app** into Applications
+1. Grab the latest `PeakDeck-*.dmg` from [Releases](https://github.com/y2050802852-ux/peakdeck/releases)
+2. Open the DMG and drag **PeakDeck.app** into Applications
 3. If macOS warns about an unidentified developer: System Settings → Privacy & Security → **Open Anyway** (this project uses a self-signed certificate and is not notarized)
 
 **Requirements**: macOS 14 Sonoma or later · Apple Silicon
@@ -77,8 +77,8 @@ All original features (music controls, calendar, shelf, HUD replacement, camera 
 - macOS 14+
 
 ```bash
-git clone https://github.com/y2050802852-ux/boring.notch-plus.git
-cd boring.notch-plus
+git clone https://github.com/y2050802852-ux/peakdeck.git
+cd peakdeck
 open boringNotch.xcodeproj   # Cmd+R in Xcode
 ```
 
@@ -87,9 +87,9 @@ Command-line build + DMG packaging:
 ```bash
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch \
   -configuration Release -destination "generic/platform=macOS" build
-hdiutil create -volname "boringNotch" \
-  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/boringNotch.app \
-  -ov -format UDZO boringNotch.dmg
+hdiutil create -volname "PeakDeck" \
+  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app \
+  -ov -format UDZO PeakDeck.dmg
 ```
 
 > [!NOTE]

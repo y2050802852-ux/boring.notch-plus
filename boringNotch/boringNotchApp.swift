@@ -32,7 +32,7 @@ struct DynamicNotchApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("PeakDeck", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
             // Rendered through AppKit's NSMenu, so resolve titles through
             // L10n instead of the SwiftUI locale environment.
             Button(L10n.string("Settings")) {
@@ -40,7 +40,7 @@ struct DynamicNotchApp: App {
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
             Divider()
-            Button(L10n.string("Restart Boring Notch")) {
+            Button(L10n.string("Restart PeakDeck")) {
                 ApplicationRelauncher.restart()
             }
             Button(L10n.string("Quit"), role: .destructive) {

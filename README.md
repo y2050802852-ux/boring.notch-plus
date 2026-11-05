@@ -1,4 +1,4 @@
-<h1 align="center">boring.notch-plus</h1>
+<h1 align="center">PeakDeck</h1>
 
 <p align="center">
   <strong>中文</strong> · <a href="README_EN.md">English</a>
@@ -63,8 +63,8 @@
 
 ## 📥 安装
 
-1. 前往 [Releases](https://github.com/y2050802852-ux/boring.notch-plus/releases) 下载最新版本的 `boringNotch-*.dmg`
-2. 打开 DMG，将 **boringNotch.app** 拖入「应用程序」
+1. 前往 [Releases](https://github.com/y2050802852-ux/peakdeck/releases) 下载最新版本的 `PeakDeck-*.dmg`
+2. 打开 DMG，将 **PeakDeck.app** 拖入「应用程序」
 3. 首次启动若提示"来自未知开发者"：系统设置 → 隐私与安全性 → **仍要打开**（本项目使用自签名证书，未经公证）
 
 **系统要求**：macOS 14 Sonoma 或更高 · Apple Silicon（M 系列芯片）
@@ -78,8 +78,8 @@
 - macOS 14+
 
 ```bash
-git clone https://github.com/y2050802852-ux/boring.notch-plus.git
-cd boring.notch-plus
+git clone https://github.com/y2050802852-ux/peakdeck.git
+cd peakdeck
 open boringNotch.xcodeproj   # Xcode 中 Cmd+R 运行
 ```
 
@@ -88,9 +88,9 @@ open boringNotch.xcodeproj   # Xcode 中 Cmd+R 运行
 ```bash
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch \
   -configuration Release -destination "generic/platform=macOS" build
-hdiutil create -volname "boringNotch" \
-  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/boringNotch.app \
-  -ov -format UDZO boringNotch.dmg
+hdiutil create -volname "PeakDeck" \
+  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app \
+  -ov -format UDZO PeakDeck.dmg
 ```
 
 > [!NOTE]

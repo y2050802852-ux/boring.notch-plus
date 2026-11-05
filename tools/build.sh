@@ -20,7 +20,7 @@ xcodebuild \
   ENABLE_HARDENED_RUNTIME=NO \
   "$@"
 
-APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/boringNotch.app 2>/dev/null | head -1)
+APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app 2>/dev/null | head -1)
 
 # Sign with the stable development identity when available. TCC grants
 # (accessibility, notifications) attach to the code-signing identity, so a
