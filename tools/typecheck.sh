@@ -1,23 +1,23 @@
 #!/bin/bash
-# SPM type-check harness for boringNotch (no full Xcode required).
+# SPM type-check harness for PeakDeck (no full Xcode required).
 #
-# 1. Mirrors boringNotch/ Swift sources into tools/harness/boringNotch/ with all
+# 1. Mirrors PeakDeck/ Swift sources into tools/harness/PeakDeck/ with all
 #    #Preview macro blocks stripped (the Xcode-only PreviewsMacros plugin does
 #    not exist in the Command Line Tools toolchain).
 # 2. Adds stubs for asset-catalog-generated symbols (ImageResource members and
 #    Bundle.module) that Xcode generates at build time from Assets.xcassets.
-# 3. Runs `swift build` against the mirror. Sources under boringNotch/ are
+# 3. Runs `swift build` against the mirror. Sources under PeakDeck/ are
 #    never modified.
 #
 # Usage: tools/typecheck.sh [extra swift build args...]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-MIRROR=tools/harness/boringNotch
+MIRROR=tools/harness/PeakDeck
 
 rsync -a --delete \
   --include='*/' --include='*.swift' --exclude='*' \
-  boringNotch/ "$MIRROR/"
+  PeakDeck/ "$MIRROR/"
 
 cat > "$MIRROR/HarnessAssetStubs.swift" << 'SWIFT'
 import AppKit

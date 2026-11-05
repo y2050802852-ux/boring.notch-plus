@@ -1,5 +1,5 @@
 #!/bin/bash
-# Local build script for boringNotch (Release .app).
+# Local build script for PeakDeck (Release .app).
 #
 # Disables hardened runtime: the repo default ENABLE_HARDENED_RUNTIME=YES plus
 # the local ad-hoc signing (no Team ID) makes macOS library validation reject
@@ -13,14 +13,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 xcodebuild \
-  -project boringNotch.xcodeproj \
-  -scheme boringNotch \
+  -project PeakDeck.xcodeproj \
+  -scheme PeakDeck \
   -configuration Release \
   -destination "generic/platform=macOS" \
   ENABLE_HARDENED_RUNTIME=NO \
   "$@"
 
-APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app 2>/dev/null | head -1)
+APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/PeakDeck-*/Build/Products/Release/PeakDeck.app 2>/dev/null | head -1)
 
 # Sign with the stable development identity when available. TCC grants
 # (accessibility, notifications) attach to the code-signing identity, so a

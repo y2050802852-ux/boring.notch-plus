@@ -80,16 +80,16 @@
 ```bash
 git clone https://github.com/y2050802852-ux/peakdeck.git
 cd peakdeck
-open boringNotch.xcodeproj   # Xcode 中 Cmd+R 运行
+open PeakDeck.xcodeproj   # Xcode 中 Cmd+R 运行
 ```
 
 命令行构建 + 打包 DMG：
 
 ```bash
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch \
+xcodebuild -project PeakDeck.xcodeproj -scheme PeakDeck \
   -configuration Release -destination "generic/platform=macOS" build
 hdiutil create -volname "PeakDeck" \
-  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app \
+  -srcfolder ~/Library/Developer/Xcode/DerivedData/PeakDeck-*/Build/Products/Release/PeakDeck.app \
   -ov -format UDZO PeakDeck.dmg
 ```
 

@@ -79,16 +79,16 @@ All original features (music controls, calendar, shelf, HUD replacement, camera 
 ```bash
 git clone https://github.com/y2050802852-ux/peakdeck.git
 cd peakdeck
-open boringNotch.xcodeproj   # Cmd+R in Xcode
+open PeakDeck.xcodeproj   # Cmd+R in Xcode
 ```
 
 Command-line build + DMG packaging:
 
 ```bash
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch \
+xcodebuild -project PeakDeck.xcodeproj -scheme PeakDeck \
   -configuration Release -destination "generic/platform=macOS" build
 hdiutil create -volname "PeakDeck" \
-  -srcfolder ~/Library/Developer/Xcode/DerivedData/boringNotch-*/Build/Products/Release/PeakDeck.app \
+  -srcfolder ~/Library/Developer/Xcode/DerivedData/PeakDeck-*/Build/Products/Release/PeakDeck.app \
   -ov -format UDZO PeakDeck.dmg
 ```
 
