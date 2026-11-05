@@ -74,8 +74,17 @@ struct ContentView: View {
         {
             // The inline HUD REPLACES the whole top bar (two 100pt slots
             // around a notch-width middle, +4 trailing). Mirror its widest
-            // (hover) state or the popup floor renders narrower than the bar.
-            chinWidth += 184
+            // (hover + gesture drag) state or the popup floor renders
+            // narrower than the bar.
+            chinWidth += 184 + gestureProgress
+        } else if !coordinator.expandingView.show && vm.notchState == .closed
+            && PomodoroManager.shared.isActive && !vm.hideOnClosed
+        {
+            // Left slot stays identical to the music/idle states; only the
+            // countdown slot is wider, so the pomodoro notch leans a bit
+            // wider overall without going lopsided.
+            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 10
+                + PomodoroLiveActivity.slotWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -89,14 +98,6 @@ struct ContentView: View {
             } else {
                 chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
             }
-        } else if !coordinator.expandingView.show && vm.notchState == .closed
-            && PomodoroManager.shared.isActive && !vm.hideOnClosed
-        {
-            // Left slot stays identical to the music/idle states; only the
-            // countdown slot is wider, so the pomodoro notch leans a bit
-            // wider overall without going lopsided.
-            chinWidth += max(0, vm.effectiveClosedNotchHeight - 12) + 10
-                + PomodoroLiveActivity.slotWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && idleWeatherEnabled
             && weatherManager.current != nil && !vm.hideOnClosed

@@ -388,9 +388,17 @@ final class ScreenshotManager: ObservableObject {
             height: selection.height)
         // The overlay window sits above everything; capturing only the
         // windows below it excludes the dimming layer from the image.
-        return CGWindowListCreateImage(
+        guard let image = CGWindowListCreateImage(
             cgRect, [.optionOnScreenBelowWindow], overlayID,
-            [.bestResolution])
+            [.bestResolution]) else { return nil }
+        // Annotations live in selection-local points; the live capture is
+        // exactly selection-sized, so the scale is direct.
+        guard !strokes.isEmpty else { return image }
+        return Self.composite(
+            strokes: strokes, on: image,
+            scale: CGPoint(
+                x: CGFloat(image.width) / max(selection.width, 1),
+                y: CGFloat(image.height) / max(selection.height, 1)))
     }
 
     /// Draws the strokes (selection-local points, top-left origin) over the
