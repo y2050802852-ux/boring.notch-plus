@@ -68,11 +68,27 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if coordinator.sneakPeek.show && Defaults[.inlineHUD]
+            && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery)
+            && vm.notchState == .closed
+        {
+            // The inline HUD REPLACES the whole top bar (two 100pt slots
+            // around a notch-width middle, +4 trailing). Mirror its widest
+            // (hover) state or the popup floor renders narrower than the bar.
+            chinWidth += 184
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
-            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            if coordinator.expandingView.show, coordinator.expandingView.type == .music,
+               Defaults[.sneakPeekStyles] == .inline {
+                // Song-change sneak peek (inline style) widens the bar's
+                // middle segment to a fixed 380pt (MusicLiveActivity) —
+                // mirror it so the popup never renders narrower than the bar.
+                chinWidth = 380 + (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            } else {
+                chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+            }
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && PomodoroManager.shared.isActive && !vm.hideOnClosed
         {
@@ -435,7 +451,12 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) { view in
+              // fixedSize lets the HUD hug its content, but it also cancels
+              // the notification row's maxWidth clamp above — with a
+              // notification displayed the top bar would shrink to its ideal
+              // width and slide out of center (leading VStack). Skip it while
+              // a notification is on screen; alignment wins for that combo.
+              .conditionalModifier(((coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type != .music) && (vm.notchState == .closed))) && notificationInterceptor.displayedNotification == nil) { view in
                   view
                       .fixedSize()
               }

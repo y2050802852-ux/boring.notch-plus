@@ -218,7 +218,10 @@ final class ScreenshotManager: ObservableObject {
 
     /// Drag while an annotation tool is active: start a stroke inside the
     /// selection, extend it while dragging (clamped so sloppy pen strokes
-    /// stay usable), commit on release.
+    /// stay usable), commit on release. Strokes are stored in
+    /// selection-LOCAL coordinates — the canvas adds rect.origin for display
+    /// and the final composite crops at the selection — so storing raw view
+    /// coordinates here would offset every stroke by the selection origin.
     func annotationDragged(to point: CGPoint) {
         if strokeStart == nil {
             guard rect.contains(point) else { return }
@@ -226,15 +229,15 @@ final class ScreenshotManager: ObservableObject {
             strokes.append(
                 AnnotationStroke(
                     tool: activeTool, color: activeColor,
-                    points: [clampedToSelection(point)]))
+                    points: [selectionLocal(clampedToSelection(point))]))
             return
         }
         guard !strokes.isEmpty else { return }
-        let clamped = clampedToSelection(point)
+        let local = selectionLocal(clampedToSelection(point))
         if activeTool == .pen {
-            strokes[strokes.count - 1].points.append(clamped)
+            strokes[strokes.count - 1].points.append(local)
         } else {
-            strokes[strokes.count - 1].points = [strokeStart!, clamped]
+            strokes[strokes.count - 1].points = [selectionLocal(strokeStart!), local]
         }
     }
 
@@ -249,6 +252,11 @@ final class ScreenshotManager: ObservableObject {
 
     func clearAnnotations() {
         strokes.removeAll()
+    }
+
+    /// View (top-left, full-screen) coordinates → selection-local.
+    private func selectionLocal(_ point: CGPoint) -> CGPoint {
+        CGPoint(x: point.x - rect.origin.x, y: point.y - rect.origin.y)
     }
 
     private func clampedToSelection(_ point: CGPoint) -> CGPoint {
